@@ -31,14 +31,8 @@ public class MethodToolCallbackProvider implements ToolCallbackProvider {
     private final ToolCallback[] toolCallbacks;
 
     private MethodToolCallbackProvider(List<Object> toolObjects, ToolCallback[] toolCallbacks) {
-//        Assert.notNull(toolObjects, "toolObjects cannot be null");
-//        Assert.noNullElements(toolObjects, "toolObjects cannot contain null elements");
+        Assert.isTrue(toolObjects != null || toolCallbacks != null, "toolObjects and toolCallbacks cannot both be null");
         this.toolObjects = toolObjects;
-        this.toolCallbacks = toolCallbacks;
-    }
-
-    public MethodToolCallbackProvider(ToolCallback[] toolCallbacks) {
-        this.toolObjects = null;
         this.toolCallbacks = toolCallbacks;
     }
 
@@ -102,12 +96,8 @@ public class MethodToolCallbackProvider implements ToolCallbackProvider {
             return this;
         }
 
-//        public MethodToolCallbackProvider build() {
-//            return new MethodToolCallbackProvider(this.toolObjects, this.toolCallbacks);
-//        }
-
         public MethodToolCallbackProvider build() {
-            return new MethodToolCallbackProvider(this.toolCallbacks);
+            return new MethodToolCallbackProvider(this.toolObjects, this.toolCallbacks);
         }
 
     }

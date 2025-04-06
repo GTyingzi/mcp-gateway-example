@@ -50,7 +50,7 @@ public class JSONSchemaUtil {
         schema.put("$schema", SchemaVersion.DRAFT_2020_12.getIdentifier());
         schema.put("type", "object");
         ObjectNode properties = schema.putObject("properties");
-        List<String> required = new ArrayList();
+        List<String> required = new ArrayList<>();
 
         for (Parameter parameter : parameters) {
             String parameterName = parameter.getParameteNname();
@@ -85,14 +85,13 @@ public class JSONSchemaUtil {
     }
 
     public static Type getTypeFromString(String typeString) throws ClassNotFoundException {
-        switch (typeString) {
-            case "string":
-                return Class.forName("java.lang.String");
-            case "number":
-                return Class.forName("java.lang.Number");
-            default:
-                throw new ClassNotFoundException("Unsupported type: " + typeString);
-        }
+        return switch (typeString) {
+            case "string" -> Class.forName("java.lang.String");
+            case "number" -> Class.forName("java.lang.Number");
+            case "integer" -> Class.forName("java.lang.Integer");
+            case "boolean" -> Class.forName("java.lang.Boolean");
+            default -> throw new ClassNotFoundException("Unsupported type: " + typeString);
+        };
     }
 
     private static void processSchemaOptions(JsonSchemaGenerator.SchemaOption[] schemaOptions, ObjectNode schema) {
@@ -113,17 +112,17 @@ public class JSONSchemaUtil {
     public static void convertTypeValuesToUpperCase(ObjectNode node) {
         if (node.isObject()) {
             node.fields().forEachRemaining((entry) -> {
-                JsonNode value = (JsonNode)entry.getValue();
+                JsonNode value = (JsonNode) entry.getValue();
                 if (value.isObject()) {
-                    convertTypeValuesToUpperCase((ObjectNode)value);
+                    convertTypeValuesToUpperCase((ObjectNode) value);
                 } else if (value.isArray()) {
                     value.elements().forEachRemaining((element) -> {
                         if (element.isObject() || element.isArray()) {
-                            convertTypeValuesToUpperCase((ObjectNode)element);
+                            convertTypeValuesToUpperCase((ObjectNode) element);
                         }
 
                     });
-                } else if (value.isTextual() && ((String)entry.getKey()).equals("type")) {
+                } else if (value.isTextual() && ((String) entry.getKey()).equals("type")) {
                     String oldValue = node.get("type").asText();
                     node.put("type", oldValue.toUpperCase());
                 }
@@ -132,7 +131,7 @@ public class JSONSchemaUtil {
         } else if (node.isArray()) {
             node.elements().forEachRemaining((element) -> {
                 if (element.isObject() || element.isArray()) {
-                    convertTypeValuesToUpperCase((ObjectNode)element);
+                    convertTypeValuesToUpperCase((ObjectNode) element);
                 }
 
             });

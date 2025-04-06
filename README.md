@@ -1,6 +1,8 @@
 ### 方案
 ![img.png](imgs/img.png)
 
+方案详解文档：[MCP Gateway](https://ik3te1knhq.feishu.cn/wiki/QrYLwrR45iaKYWkWbSVcrIaHnug)
+
 ### 模块讲解
 
 - mcp-client: Spring AI MCP Client
@@ -63,4 +65,4 @@ nacos.core.auth.plugin.nacos.token.secret.key=SecretKey0123456789012345678901234
 
 
 ### mcp-server启动
-网关代理：http://localhost:18085/nacos/echo/nacos
+网关代理：http://localhost:18085/gateway/echo/nacos

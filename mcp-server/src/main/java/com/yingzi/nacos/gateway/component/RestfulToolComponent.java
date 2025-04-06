@@ -14,6 +14,7 @@ import org.springframework.ai.tool.definition.DefaultToolDefinition;
 import org.springframework.ai.tool.method.MethodToolCallback;
 import org.springframework.ai.tool.method.MethodToolCallbackProvider;
 import org.springframework.ai.util.json.JsonParser;
+import org.springframework.cloud.client.loadbalancer.LoadBalancerClient;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
@@ -33,12 +34,20 @@ public class RestfulToolComponent {
     private static final Logger logger = LoggerFactory.getLogger(RestfulToolComponent.class);
 
     private final Map<String, RestfulInfo> restfulInfoMap = new HashMap<>();
-    private final String HOST_URL = "http://localhost:18086";
     private final RestClient restClient;
 
-    public RestfulToolComponent() {
+    public RestfulToolComponent(LoadBalancerClient loadBalancerClient) {
+        String baseUrl;
+        if (loadBalancerClient == null) {
+            // 本地启动时，直接使用指定的端口
+            baseUrl = "http://localhost:18086";
+        } else {
+            // 通过LoadBalancerClient动态获取服务地址
+            baseUrl = loadBalancerClient.choose("mcp-restful-provider").getUri().toString();
+        }
         this.restClient = RestClient.builder()
-                .baseUrl(HOST_URL).build();
+                .baseUrl(baseUrl)
+                .build();
     }
 
     // 解析Restful信息，注册ToolCallbackProvider
@@ -87,8 +96,9 @@ public class RestfulToolComponent {
         // request为接口的入参
         Map<String, Object> toolArguments = extractToolArguments(toolInput);
 
+        // 获取服务实例
         // 调用restful接口
-        StringBuilder uriBuilder = new StringBuilder(restfulInfo.getPath()).append("?");
+        StringBuilder uriBuilder = new StringBuilder().append(restfulInfo.getPath()).append("?");
         toolArguments.forEach((key, value) -> {
             uriBuilder.append(key).append("=").append(value).append("&");
         });
@@ -110,7 +120,8 @@ public class RestfulToolComponent {
     }
 
     public static void main(String[] args) {
-        RestfulToolComponent restfulToolComponent = new RestfulToolComponent();
+        // 在本地启动时，传入null以使用指定端口
+        RestfulToolComponent restfulToolComponent = new RestfulToolComponent(null);
         restfulToolComponent.parseRestfulInfo();
 
         String methodName = "getWeatherForecastByLocation";

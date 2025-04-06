@@ -20,7 +20,6 @@ import org.springframework.stereotype.Component;
 public class RestfulApplication {
     private static final Logger logger = LoggerFactory.getLogger(RestfulApplication.class);
 
-
     public static void main(String[] args) {
         ConfigurableApplicationContext context = SpringApplication.run(RestfulApplication.class, args);
 

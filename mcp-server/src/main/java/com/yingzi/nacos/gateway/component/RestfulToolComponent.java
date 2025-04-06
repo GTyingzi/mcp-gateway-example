@@ -91,6 +91,7 @@ public class RestfulToolComponent {
     }
 
     public String RestfulRestul(String methodName, String toolInput) {
+        logger.info("调用Restful接口: {}", methodName);
         // 利用方法名去匹配选择接口
         RestfulInfo restfulInfo = restfulInfoMap.get(methodName);
         // request为接口的入参

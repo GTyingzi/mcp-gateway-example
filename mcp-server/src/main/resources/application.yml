@@ -1,0 +1,37 @@
+server:
+  port: 18085
+spring:
+  application:
+    name: service-gateway
+
+  cloud:
+    # nacos注册中心配置
+    nacos:
+      discovery:
+        username: nacos
+        password: nacos
+        server-addr: 127.0.0.1:8848
+
+management:
+  endpoints:
+    web:
+      exposure:
+        exclude: "*"
+
+---
+spring:
+  main:
+    banner-mode: off
+  ai:
+    mcp:
+      server:
+        name: mcp-restful-provider
+        version: 0.0.1
+
+# 调试日志
+logging:
+  level:
+    io:
+      modelcontextprotocol:
+        client: DEBUG
+        spec: DEBUG

@@ -1,0 +1,24 @@
+server:
+  port: 18086
+
+spring:
+  application:
+    name: mcp-restful-provider
+
+  cloud:
+    # nacos注册中心配置
+    nacos:
+      discovery:
+        username: nacos
+        password: nacos
+        server-addr: 127.0.0.1:8848
+## 配置swagger文档的访问路径
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+
+management:
+  endpoints:
+    web:
+      exposure:
+        exclude: "*"

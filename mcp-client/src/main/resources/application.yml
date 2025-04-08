@@ -16,6 +16,11 @@ spring:
           connections:
             server1:
               url: http://localhost:18085
+          headers-map:
+            token-yingzi: yingzi
+            token-yingzi-2: yingzi-2
+            token-yingzi-3: yingzi-3
+
 # 调试日志
 logging:
   level:

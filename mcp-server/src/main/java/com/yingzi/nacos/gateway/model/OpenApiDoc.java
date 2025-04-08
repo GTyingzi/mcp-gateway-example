@@ -12,10 +12,6 @@ public class OpenApiDoc {
     @JsonProperty("paths")
     private Map<String, PathItem> paths;
 
-    public Map<String, PathItem> paths() {
-        return paths;
-    }
-
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class PathItem {
         @JsonProperty("get")

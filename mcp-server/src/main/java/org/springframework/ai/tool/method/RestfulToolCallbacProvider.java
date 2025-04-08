@@ -42,10 +42,11 @@ public class RestfulToolCallbacProvider implements ToolCallbackProvider {
             return this;
         }
 
+
+
         public RestfulToolCallbacProvider build() {
             return new RestfulToolCallbacProvider(this.toolCallbacks);
         }
     }
-
 
 }

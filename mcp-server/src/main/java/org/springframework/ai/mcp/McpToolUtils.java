@@ -1,5 +1,7 @@
 package org.springframework.ai.mcp;
 
+import com.yingzi.nacos.gateway.component.RestfulToolComponent;
+import com.yingzi.nacos.gateway.utils.ApplicationContextHolder;
 import io.modelcontextprotocol.client.McpAsyncClient;
 import io.modelcontextprotocol.client.McpSyncClient;
 import io.modelcontextprotocol.server.McpServerFeatures;
@@ -18,7 +20,16 @@ import java.util.List;
  */
 public final class McpToolUtils {
 
+    private static RestfulToolComponent restfulToolComponent;
+
     private McpToolUtils() {
+    }
+
+    private static RestfulToolComponent getRestfulToolComponent() {
+        if (restfulToolComponent == null) {
+            restfulToolComponent = ApplicationContextHolder.getBean(RestfulToolComponent.class);
+        }
+        return restfulToolComponent;
     }
 
     public static List<McpServerFeatures.SyncToolRegistration> toSyncToolRegistration(List<ToolCallback> toolCallbacks) {
@@ -34,7 +45,8 @@ public final class McpToolUtils {
         McpSchema.Tool tool = new McpSchema.Tool(toolCallback.getToolDefinition().name(), toolCallback.getToolDefinition().description(), toolCallback.getToolDefinition().inputSchema());
         return new McpServerFeatures.SyncToolRegistration(tool, (request) -> {
             try {
-                String callResult = toolCallback.call(ModelOptionsUtils.toJsonString(request));
+//                String callResult = toolCallback.call(ModelOptionsUtils.toJsonString(request));
+                String callResult = getRestfulToolComponent().RestfulRestul(toolCallback.getToolDefinition().name(), ModelOptionsUtils.toJsonString(request));
                 return new McpSchema.CallToolResult(List.of(new McpSchema.TextContent(callResult)), false);
             } catch (Exception var3) {
                 return new McpSchema.CallToolResult(List.of(new McpSchema.TextContent(var3.getMessage())), true);

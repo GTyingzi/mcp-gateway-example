@@ -23,6 +23,7 @@ public class RestfulToolCallback implements ToolCallback {
     // 方法名称到接口路径到映射
     private final Map<String, String> methodName2Path;
     private final RestClient restClient;
+    private Map<String, String> headersMap;
 
     public RestfulToolCallback(ToolDefinition toolDefinition, Map<String, String> methodName2Path, RestClient restClient) {
         Assert.notNull(toolDefinition, "toolDefinition cannot be null");
@@ -54,12 +55,21 @@ public class RestfulToolCallback implements ToolCallback {
             uri = uri.substring(0, uri.length() - 1);
         }
         String restfulResult = restClient.get().uri(uri)
+                .headers(headers -> {
+                    if (this.headersMap != null) {
+                        this.headersMap.forEach(headers::add);
+                    }
+                })
                 .retrieve()
                 .body(String.class);
         logger.debug("Successful execution of tool: {}", this.toolDefinition.name());
         return restfulResult;
     }
 
+
+    public void setHeadersMap(Map<String, String> headersMap) {
+        this.headersMap = headersMap;
+    }
 
 
     private Map<String, Object> extractToolArguments(String toolInput) {

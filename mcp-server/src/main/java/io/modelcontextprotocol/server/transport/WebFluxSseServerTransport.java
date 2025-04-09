@@ -2,6 +2,7 @@ package io.modelcontextprotocol.server.transport;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.yingzi.nacos.gateway.utils.ApplicationContextHolder;
 import io.modelcontextprotocol.spec.McpError;
 import io.modelcontextprotocol.spec.McpSchema;
 import io.modelcontextprotocol.spec.ServerMcpTransport;
@@ -17,6 +18,9 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.ai.tool.ToolCallback;
+import org.springframework.ai.tool.method.RestfulToolCallbacProvider;
+import org.springframework.ai.tool.method.RestfulToolCallback;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.codec.ServerSentEvent;
@@ -138,6 +142,15 @@ public class WebFluxSseServerTransport implements ServerMcpTransport {
             Map<String, String> headers = request.headers().asHttpHeaders().toSingleValueMap();
             logger.debug("Received SSE connection request with headers: {}", headers);
             this.headersMap = headers;
+
+            // 找到RestfulToolCallbacProvider组件，设置请求头
+            RestfulToolCallbacProvider restfulToolCallbacProvider = ApplicationContextHolder.getBean(RestfulToolCallbacProvider.class);
+            for (ToolCallback toolCallback : restfulToolCallbacProvider.getToolCallbacks()) {
+                if (toolCallback instanceof RestfulToolCallback) {
+                    ((RestfulToolCallback) toolCallback).setHeadersMap(headersMap);
+                }
+            }
+
             String sessionId = UUID.randomUUID().toString();
             logger.debug("Creating new SSE connection for session: {}", sessionId);
             ClientSession session = new ClientSession(sessionId);

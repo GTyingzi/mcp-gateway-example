@@ -23,7 +23,7 @@ public class RestfulToolCallbacProvider implements ToolCallbackProvider {
     }
 
     @Override
-    public FunctionCallback[] getToolCallbacks() {
+    public ToolCallback[] getToolCallbacks() {
         return this.toolCallbacks;
     }
 
@@ -41,8 +41,6 @@ public class RestfulToolCallbacProvider implements ToolCallbackProvider {
             this.toolCallbacks = toolCallbacks;
             return this;
         }
-
-
 
         public RestfulToolCallbacProvider build() {
             return new RestfulToolCallbacProvider(this.toolCallbacks);

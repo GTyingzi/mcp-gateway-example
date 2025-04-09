@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+
 import org.springframework.ai.autoconfigure.mcp.client.properties.McpClientCommonProperties;
 import org.springframework.ai.autoconfigure.mcp.client.properties.McpSseClientProperties;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
@@ -14,8 +15,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.reactive.function.client.WebClient;
 
 /**
@@ -39,16 +38,13 @@ public class SseWebFluxTransportAutoConfiguration {
     public List<NamedClientMcpTransport> webFluxClientTransports(McpSseClientProperties sseProperties, WebClient.Builder webClientBuilderTemplate, ObjectMapper objectMapper) {
         List<NamedClientMcpTransport> sseTransports = new ArrayList();
         Iterator var5 = sseProperties.getConnections().entrySet().iterator();
-        Map<String, String> headersMap = sseProperties.getHeadersMap();
         while(var5.hasNext()) {
             Map.Entry<String, McpSseClientProperties.SseParameters> serverParameters = (Map.Entry)var5.next();
             WebClient.Builder webClientBuilder = webClientBuilderTemplate.clone()
-                    .defaultHeaders(headers -> {
-                        if (headersMap != null && !headersMap.isEmpty()) {
-                            headersMap.forEach(headers::add);
-                        }
-                    })
-                    .baseUrl(((McpSseClientProperties.SseParameters)serverParameters.getValue()).url());
+                    .baseUrl(serverParameters.getValue().url())
+                    .defaultHeaders((headers) -> {
+                        serverParameters.getValue().headersMap().forEach(headers::add);
+                    });
             WebFluxSseClientTransport transport = new WebFluxSseClientTransport(webClientBuilder, objectMapper);
             sseTransports.add(new NamedClientMcpTransport((String)serverParameters.getKey(), transport));
         }

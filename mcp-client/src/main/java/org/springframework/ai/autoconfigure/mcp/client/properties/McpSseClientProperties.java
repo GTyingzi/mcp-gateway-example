@@ -14,8 +14,6 @@ public class McpSseClientProperties {
     public static final String CONFIG_PREFIX = "spring.ai.mcp.client.sse";
     private final Map<String, SseParameters> connections = new HashMap();
 
-    private final Map<String, String> headersMap = new HashMap<>();
-
     public McpSseClientProperties() {
     }
 
@@ -23,17 +21,13 @@ public class McpSseClientProperties {
         return this.connections;
     }
 
-    public Map<String, String> getHeadersMap() {
-        return this.headersMap;
-    }
-
-    public static record SseParameters(String url) {
-        public SseParameters(String url) {
-            this.url = url;
-        }
+    public static record SseParameters(String url, Map<String, String> headersMap) {
 
         public String url() {
             return this.url;
+        }
+        public Map<String, String> headersMap() {
+            return this.headersMap;
         }
     }
 }

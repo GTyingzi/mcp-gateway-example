@@ -40,7 +40,6 @@ public class JSONSchemaUtil {
         SUBTYPE_SCHEMA_GENERATOR = new SchemaGenerator(subtypeSchemaGeneratorConfig);
     }
 
-
     public static String getInputSchema(List<Parameter> parameters) {
         if (parameters == null) {
             return "test";

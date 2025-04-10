@@ -46,13 +46,13 @@ public class WebFluxSseServerTransport implements ServerMcpTransport {
     private final String sseEndpoint;
     private final RouterFunction<?> routerFunction;
     private final ConcurrentHashMap<String, ClientSession> sessions;
-
-    private Map<String, String> headersMap;
+    private final ConcurrentHashMap<String, Map<String, String>> session2headersMap;
     private volatile boolean isClosing;
     private Function<Mono<McpSchema.JSONRPCMessage>, Mono<McpSchema.JSONRPCMessage>> connectHandler;
 
     public WebFluxSseServerTransport(ObjectMapper objectMapper, String messageEndpoint, String sseEndpoint) {
         this.sessions = new ConcurrentHashMap();
+        this.session2headersMap = new ConcurrentHashMap();
         this.isClosing = false;
         Assert.notNull(objectMapper, "ObjectMapper must not be null");
         Assert.notNull(messageEndpoint, "Message endpoint must not be null");
@@ -83,6 +83,15 @@ public class WebFluxSseServerTransport implements ServerMcpTransport {
                     ServerSentEvent<Object> event = ServerSentEvent.builder().event("message").data(jsonText).build();
                     logger.debug("Attempting to broadcast message to {} active sessions", this.sessions.size());
                     List<String> failedSessions = this.sessions.values().stream().filter((session) -> {
+                        // 获取此时会话对应的请求头
+                        Map<String, String> headersMap = this.session2headersMap.get(session.id);
+                        // 找到RestfulToolCallbacProvider组件，设置请求头
+                        RestfulToolCallbacProvider restfulToolCallbacProvider = ApplicationContextHolder.getBean(RestfulToolCallbacProvider.class);
+                        for (ToolCallback toolCallback : restfulToolCallbacProvider.getToolCallbacks()) {
+                            if (toolCallback instanceof RestfulToolCallback) {
+                                ((RestfulToolCallback) toolCallback).setHeadersMap(headersMap);
+                            }
+                        }
                         return session.messageSink.tryEmitNext(event).isFailure();
                     }).map((session) -> {
                         return session.id;
@@ -130,31 +139,20 @@ public class WebFluxSseServerTransport implements ServerMcpTransport {
         return this.routerFunction;
     }
 
-    public Map<String, String> getHeadersMap() {
-        return headersMap;
-    }
 
     private Mono<ServerResponse> handleSseConnection(ServerRequest request) {
         if (this.isClosing) {
             return ServerResponse.status(HttpStatus.SERVICE_UNAVAILABLE).bodyValue("Server is shutting down");
         } else {
-            // 获取请求头
-            Map<String, String> headers = request.headers().asHttpHeaders().toSingleValueMap();
-            logger.debug("Received SSE connection request with headers: {}", headers);
-            this.headersMap = headers;
-
-            // 找到RestfulToolCallbacProvider组件，设置请求头
-            RestfulToolCallbacProvider restfulToolCallbacProvider = ApplicationContextHolder.getBean(RestfulToolCallbacProvider.class);
-            for (ToolCallback toolCallback : restfulToolCallbacProvider.getToolCallbacks()) {
-                if (toolCallback instanceof RestfulToolCallback) {
-                    ((RestfulToolCallback) toolCallback).setHeadersMap(headersMap);
-                }
-            }
-
             String sessionId = UUID.randomUUID().toString();
             logger.debug("Creating new SSE connection for session: {}", sessionId);
             ClientSession session = new ClientSession(sessionId);
             this.sessions.put(sessionId, session);
+            // 获取请求头
+            Map<String, String> headers = request.headers().asHttpHeaders().toSingleValueMap();
+            logger.debug("Received SSE connection request with headers: {}", headers);
+            session2headersMap.put(sessionId, headers);
+
             return ServerResponse.ok().contentType(MediaType.TEXT_EVENT_STREAM).body(Flux.create((sink) -> {
                 logger.debug("Sending initial endpoint event to session: {}", sessionId);
                 sink.next(ServerSentEvent.builder().event("endpoint").data(this.messageEndpoint).build());

@@ -4,8 +4,8 @@ server:
 spring:
   application:
     name: mcp-client-webflux
-  main:
-    web-application-type: none
+#  main:
+#    web-application-type: none
   ai:
     dashscope:
       api-key: ${DASHSCOPE_API_KEY}

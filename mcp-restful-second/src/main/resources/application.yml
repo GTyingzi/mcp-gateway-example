@@ -1,9 +1,9 @@
 server:
-  port: 18081
+  port: 18082
 
 spring:
   application:
-    name: mcp-restful-provider
+    name: mcp-restful-second-provider
 
   cloud:
     # nacos注册中心配置

@@ -1,4 +1,4 @@
-package com.yingzi.nacos.restful.model.dto;
+package com.yingzi.nacos.restful.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;

@@ -1,8 +1,8 @@
 server:
-  port: 18090
+  port: 18091
 spring:
   application:
-    name: service-gateway
+    name: service-gateway-second
 
   cloud:
     # nacos注册中心配置
@@ -12,8 +12,7 @@ spring:
         password: nacos
         server-addr: 127.0.0.1:8848
       restful-services:
-        - mcp-restful-second-provider
-        - mcp-restful-provider
+        - mcp-restful-threed-provider
 
 management:
   endpoints:
@@ -28,7 +27,7 @@ spring:
   ai:
     mcp:
       server:
-        name: mcp-restful-provider
+        name: mcp-restful-provider-second
         version: 0.0.1
 
 # 调试日志

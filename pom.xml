@@ -17,6 +17,9 @@
         <module>mcp-client</module>
         <module>mcp-server</module>
         <module>mcp-restful</module>
+        <module>mcp-restful-second</module>
+        <module>mcp-server-second</module>
+        <module>mcp-restful-threed</module>
     </modules>
 
     <properties>

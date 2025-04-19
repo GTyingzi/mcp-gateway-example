@@ -15,11 +15,13 @@ spring:
         sse:
           connections:
             server1:
-              url: http://localhost:18085
+              url: http://localhost:18090
               headers-map:
                 token-yingzi: yingzi
-                token-yingzi-2: yingzi-2
-                token-yingzi-3: yingzi-3
+            server2:
+              url: http://localhost:18091
+              headers-map:
+                token-yingzi-2: yingzi2
 
 # 调试日志
 logging:

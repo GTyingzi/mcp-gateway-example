@@ -3,8 +3,11 @@
   <component name="Encoding">
     <file url="file://$PROJECT_DIR$/mcp-client/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/mcp-client/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/mcp-restful-second/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/mcp-restful-threed/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/mcp-restful/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/mcp-restful/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/mcp-server-second/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/mcp-server/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/mcp-server/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/src/main/java" charset="UTF-8" />

@@ -5,9 +5,15 @@
 
 ### 模块讲解
 
-- mcp-client: Spring AI MCP Client
-- mcp-server: Spring Cloud MCP Server（利用Spring Cloud Gateway）
-- mcp-restful: Restful API提供者
+- Restful API提供者
+  - mcp-restful：提供时间接口
+  - mcp-restful-second：提供天气预测接口
+  - mcp-restful-three：提供天气质量接口
+- MCP Server
+  - mcp-server: 连接了两个服务：mcp-restful和mcp-restful-second  
+  - mcp-server-second：连接了1个服务：mcp-restful-three
+- MCP Client
+  - mcp-client: 连接了两个服务：mcp-restful和mcp-restful-second
 
 ### 快速启动
 #### 配置nacos

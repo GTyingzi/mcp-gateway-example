@@ -27,7 +27,7 @@ spring:
   ai:
     mcp:
       server:
-        name: mcp-restful-provider-second
+        name: mcp-restful-second-provider
         version: 0.0.1
 
 # 调试日志

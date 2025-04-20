@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yingzi.nacos.gateway.config.RestfulServicesConfig;
 import com.yingzi.nacos.gateway.model.OpenApiDoc;
+import com.yingzi.nacos.gateway.utils.ApplicationContextHolder;
 import com.yingzi.nacos.gateway.utils.JSONSchemaUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,8 +15,7 @@ import org.springframework.ai.tool.method.RestfulToolCallbacProvider;
 import org.springframework.ai.tool.method.RestfulToolCallback;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.loadbalancer.LoadBalancerClient;
-import org.springframework.context.annotation.DependsOn;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import java.util.ArrayList;
@@ -28,56 +28,52 @@ import java.util.Map;
  * @date 2025/4/6:13:31
  * 解析Restful信息，注册ToolCallbackProvider
  */
-@Service
+@Component
 public class RestfulToolComponent {
 
     private static final Logger logger = LoggerFactory.getLogger(RestfulToolComponent.class);
-    private final List<WebClient> webClientList;
-    private final Map<String, WebClient> webClientMap;
+    private static final String API_DOC_URL = "/v3/api-docs";
+
+    private final LoadBalancerClient loadBalancerClient;
+    private final ObjectMapper objectMapper;
+    private final List<ToolCallback> toolCallbackList;
+    private final RestfulServicesConfig restfulServicesConfig;
 
     public RestfulToolComponent(LoadBalancerClient loadBalancerClient, RestfulServicesConfig restfulServicesConfig) {
-        webClientList = new ArrayList<>();
-        webClientMap = new HashMap<>();
-        for (String restfulService : restfulServicesConfig.getRestfulServices()) {
-            ServiceInstance serviceInstance = loadBalancerClient.choose(restfulService);
-            if (serviceInstance == null) {
-                logger.error("LoadBalancerClient choose service instance is null, restfulService: {}", restfulService);
-                continue;
-            }
-            String baseUrl = serviceInstance.getUri().toString();
-            logger.info("LoadBalancerClient choose: {}, restfulService: {}", baseUrl, restfulService);
-            WebClient webClient = WebClient.builder()
-                    .baseUrl(baseUrl)
-                    .build();
-            webClientList.add(webClient);
-            webClientMap.put(restfulService, webClient);
-        }
+        this.loadBalancerClient = loadBalancerClient;
+        this.objectMapper = new ObjectMapper();
+        this.toolCallbackList = new ArrayList<>();
+        this.restfulServicesConfig = restfulServicesConfig;
     }
 
-    // 解析Restful信息，注册ToolCallbackProvider
-    public ToolCallbackProvider parseRestfulInfo() {
-        ObjectMapper objectMapper = new ObjectMapper();
-        List<ToolCallback> toolCallbackList = new ArrayList<>();
-
-        String API_DOC_URL = "/v3/api-docs";
-        webClientList.forEach(webClient -> {
-            String serviceName = webClientMap.entrySet().stream()
-                    .filter(entry -> entry.getValue().equals(webClient))
-                    .map(Map.Entry::getKey)
-                    .findFirst()
-                    .orElse("Unknown Service"); // 获取当前 WebClient 对应的服务名称
-
+    private void initializeTools() {
+        for (String serviceName : restfulServicesConfig.getRestfulServices()) {
             try {
-                String apiDocJson = webClient.get().uri(API_DOC_URL).retrieve().bodyToMono(String.class).block();
+                // 使用 LoadBalancerClient 获取服务实例
+                ServiceInstance instance = loadBalancerClient.choose(serviceName);
+                if (instance == null) {
+                    logger.error("No available service instance for {}", serviceName);
+                    continue;
+                }
+
+                String url = instance.getUri().toString() + API_DOC_URL;
+                WebClient globalWebClient = ApplicationContextHolder.getBean(WebClient.class);
+                String apiDocJson = globalWebClient.get()
+                        .uri(url)
+                        .retrieve()
+                        .bodyToMono(String.class)
+                        .block();
+
                 OpenApiDoc openApiDoc = objectMapper.readValue(apiDocJson, OpenApiDoc.class);
                 Map<String, OpenApiDoc.PathItem> paths = openApiDoc.getPaths();
                 Map<String, String> methodName2Path = new HashMap<>();
+                
                 paths.forEach((path, pathItem) -> {
                     if (path.equals("/echo/nacos")) {
                         return;
                     }
                     // 保存接口信息
-                    logger.info("加载path: {}", path);
+                    logger.info("Loading path for service {}: {}", serviceName, path);
                     String methodName = pathItem.operation().getMethodName();
                     methodName2Path.put(methodName, path);
                     // 构建toolObject对象
@@ -89,20 +85,25 @@ public class RestfulToolComponent {
                                     .build()
                             )
                             .methodName2Path(methodName2Path)
-                            .webClient(webClient)
+                            .serviceId(serviceName)
                             .build();
                     toolCallbackList.add(restfulToolCallback);
                 });
             } catch (JsonProcessingException e) {
-                logger.error("解析Restful Api Doc信息失败，服务名称: {}", serviceName, e); // 记录失败的服务名称
+                logger.error("解析Restful Api Doc信息失败，服务名称: {}", serviceName, e);
             } catch (Exception e) {
-                logger.error("获取Restful Api Doc信息失败，服务名称: {}", serviceName, e); // 记录失败的服务名称
+                logger.error("获取Restful Api Doc信息失败，服务名称: {}", serviceName, e);
             }
-        });
+        }
+    }
 
+    public List<ToolCallback> getToolCallbackList() {
+        return toolCallbackList;
+    }
+
+    public ToolCallbackProvider parseRestfulInfo() {
+        initializeTools();
         ToolCallback[] toolCallbacks = toolCallbackList.toArray(new ToolCallback[0]);
         return RestfulToolCallbacProvider.builder().toolCallbacks(toolCallbacks).build();
     }
-
-
 }

@@ -12,6 +12,7 @@ import org.springframework.ai.tool.ToolCallbackProvider;
 import org.springframework.ai.tool.definition.DefaultToolDefinition;
 import org.springframework.ai.tool.method.RestfulToolCallbacProvider;
 import org.springframework.ai.tool.method.RestfulToolCallback;
+import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.loadbalancer.LoadBalancerClient;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Service;
@@ -38,7 +39,12 @@ public class RestfulToolComponent {
         webClientList = new ArrayList<>();
         webClientMap = new HashMap<>();
         for (String restfulService : restfulServicesConfig.getRestfulServices()) {
-            String baseUrl = loadBalancerClient.choose(restfulService).getUri().toString();
+            ServiceInstance serviceInstance = loadBalancerClient.choose(restfulService);
+            if (serviceInstance == null) {
+                logger.error("LoadBalancerClient choose service instance is null, restfulService: {}", restfulService);
+                continue;
+            }
+            String baseUrl = serviceInstance.getUri().toString();
             logger.info("LoadBalancerClient choose: {}, restfulService: {}", baseUrl, restfulService);
             WebClient webClient = WebClient.builder()
                     .baseUrl(baseUrl)

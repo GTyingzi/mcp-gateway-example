@@ -35,12 +35,13 @@
 
         <dependency>
             <groupId>org.springframework.ai</groupId>
-            <artifactId>spring-ai-mcp-server-webflux-spring-boot-starter</artifactId>
+            <artifactId>spring-ai-autoconfigure-mcp-server</artifactId>
             <version>${spring-ai.version}</version>
         </dependency>
         <dependency>
-            <groupId>io.modelcontextprotocol.sdk</groupId>
-            <artifactId>mcp</artifactId>
+            <groupId>org.springframework.ai</groupId>
+            <artifactId>spring-ai-starter-mcp-server-webflux</artifactId>
+            <version>${spring-ai.version}</version>
         </dependency>
     </dependencies>
 

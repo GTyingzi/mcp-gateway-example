@@ -3,7 +3,6 @@ package org.springframework.ai.autoconfigure.mcp.client.properties;
 import java.util.HashMap;
 import java.util.Map;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.util.MultiValueMap;
 
 /**
  * @author yingzi

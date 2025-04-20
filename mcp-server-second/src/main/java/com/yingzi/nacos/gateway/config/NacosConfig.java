@@ -9,7 +9,7 @@ import org.springframework.cloud.loadbalancer.annotation.LoadBalancerClientSpeci
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Configuration;
 
-@Configuration("NacosConfig")
+@Configuration
 public class NacosConfig {
 
     @Autowired

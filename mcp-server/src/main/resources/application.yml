@@ -1,5 +1,5 @@
 server:
-  port: ${SERVER_PORT:19000}
+  port: ${SERVER_PORT:19001}
 spring:
   application:
     name: service-gateway
@@ -30,6 +30,8 @@ spring:
       server:
         name: mcp-restful-provider
         version: 0.0.1
+#        sse-message-endpoint: /mcp/messages
+        type: sync
 
 # 调试日志
 logging:

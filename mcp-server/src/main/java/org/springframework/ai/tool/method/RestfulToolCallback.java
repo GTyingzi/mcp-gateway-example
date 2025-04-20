@@ -4,11 +4,13 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.yingzi.nacos.gateway.utils.ApplicationContextHolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.ai.chat.model.ToolContext;
 import org.springframework.ai.tool.ToolCallback;
 import org.springframework.ai.tool.definition.ToolDefinition;
 import org.springframework.ai.util.json.JsonParser;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.loadbalancer.LoadBalancerClient;
+import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.web.reactive.function.client.WebClient;
 
@@ -44,6 +46,10 @@ public class RestfulToolCallback implements ToolCallback {
 
     @Override
     public String call(String toolInput) {
+        return this.call(toolInput, (ToolContext) null);
+    }
+
+    public String call(String toolInput, @Nullable ToolContext toolContext) {
         Assert.hasText(toolInput, "toolInput cannot be null or empty");
         logger.debug("Starting execution of tool: {}", this.toolDefinition.name());
         

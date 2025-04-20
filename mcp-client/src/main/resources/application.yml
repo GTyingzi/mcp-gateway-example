@@ -7,21 +7,32 @@ spring:
 #  main:
 #    web-application-type: none
   ai:
-    dashscope:
+#    dashscope:
+#      api-key: ${DASHSCOPE_API_KEY}
+    openai:
       api-key: ${DASHSCOPE_API_KEY}
+      base-url: https://dashscope.aliyuncs.com/compatible-mode
+      chat:
+        options:
+          model: qwen-max
+
 
     mcp:
       client:
+        enabled: true
+        request-timeout: 600s
+        toolcallback:
+          enabled: true
         sse:
           connections:
             server1:
               url: http://localhost:19000
               headers-map:
                 token-yingzi: yingzi
-            server2:
-              url: http://localhost:19100
-              headers-map:
-                token-yingzi-2: yingzi2
+#            server2:
+#              url: http://localhost:19100
+#              headers-map:
+#                token-yingzi-2: yingzi2
 
 # 调试日志
 logging:

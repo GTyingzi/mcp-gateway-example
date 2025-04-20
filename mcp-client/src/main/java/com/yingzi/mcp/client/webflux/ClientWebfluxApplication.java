@@ -1,6 +1,7 @@
 package com.yingzi.mcp.client.webflux;
 
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.mcp.SyncMcpToolCallbackProvider;
 import org.springframework.ai.tool.ToolCallbackProvider;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -12,7 +13,7 @@ import org.springframework.web.client.RestClient;
 import java.util.Scanner;
 
 @SpringBootApplication(exclude = {
-        org.springframework.ai.autoconfigure.mcp.client.SseHttpClientTransportAutoConfiguration.class
+        org.springframework.ai.mcp.client.autoconfigure.SseHttpClientTransportAutoConfiguration.class
 })
 public class ClientWebfluxApplication {
 

@@ -1,17 +1,19 @@
 package org.springframework.ai.autoconfigure.mcp.client;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.modelcontextprotocol.client.transport.WebFluxSseClientTransport;
+
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import org.springframework.ai.autoconfigure.mcp.client.properties.McpClientCommonProperties;
+import io.modelcontextprotocol.client.transport.WebFluxSseClientTransport;
 import org.springframework.ai.autoconfigure.mcp.client.properties.McpSseClientProperties;
+import org.springframework.ai.mcp.client.autoconfigure.NamedClientMcpTransport;
+import org.springframework.ai.mcp.client.autoconfigure.properties.McpClientCommonProperties;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -35,32 +37,23 @@ public class SseWebFluxTransportAutoConfiguration {
     }
 
     @Bean
-    public List<NamedClientMcpTransport> webFluxClientTransports(McpSseClientProperties sseProperties, WebClient.Builder webClientBuilderTemplate, ObjectMapper objectMapper) {
+    public List<NamedClientMcpTransport> webFluxClientTransports(McpSseClientProperties sseProperties, ObjectProvider<WebClient.Builder> webClientBuilderProvider, ObjectProvider<ObjectMapper> objectMapperProvider) {
         List<NamedClientMcpTransport> sseTransports = new ArrayList();
-        Iterator var5 = sseProperties.getConnections().entrySet().iterator();
-        while(var5.hasNext()) {
-            Map.Entry<String, McpSseClientProperties.SseParameters> serverParameters = (Map.Entry)var5.next();
-            WebClient.Builder webClientBuilder = webClientBuilderTemplate.clone()
-                    .baseUrl(serverParameters.getValue().url())
+        WebClient.Builder webClientBuilderTemplate = (WebClient.Builder)webClientBuilderProvider.getIfAvailable(WebClient::builder);
+        ObjectMapper objectMapper = (ObjectMapper)objectMapperProvider.getIfAvailable(ObjectMapper::new);
+        Iterator var7 = sseProperties.getConnections().entrySet().iterator();
+
+        while(var7.hasNext()) {
+            Map.Entry<String, McpSseClientProperties.SseParameters> serverParameters = (Map.Entry)var7.next();
+            WebClient.Builder webClientBuilder = webClientBuilderTemplate.clone().baseUrl(((McpSseClientProperties.SseParameters)serverParameters.getValue()).url())
                     .defaultHeaders((headers) -> {
                         serverParameters.getValue().headersMap().forEach(headers::add);
-                    });
+                    })
+                    ;
             WebFluxSseClientTransport transport = new WebFluxSseClientTransport(webClientBuilder, objectMapper);
             sseTransports.add(new NamedClientMcpTransport((String)serverParameters.getKey(), transport));
         }
 
         return sseTransports;
-    }
-
-    @Bean
-    @ConditionalOnMissingBean
-    public WebClient.Builder webClientBuilder() {
-        return WebClient.builder();
-    }
-
-    @Bean
-    @ConditionalOnMissingBean
-    public ObjectMapper objectMapper() {
-        return new ObjectMapper();
     }
 }

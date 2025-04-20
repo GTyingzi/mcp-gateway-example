@@ -1,4 +1,4 @@
-package org.springframework.ai.autoconfigure.mcp.client;
+package org.springframework.ai.mcp.client.autoconfigure;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -8,8 +8,7 @@ import java.util.List;
 import java.util.Map;
 
 import io.modelcontextprotocol.client.transport.WebFluxSseClientTransport;
-import org.springframework.ai.autoconfigure.mcp.client.properties.McpSseClientProperties;
-import org.springframework.ai.mcp.client.autoconfigure.NamedClientMcpTransport;
+import org.springframework.ai.mcp.client.autoconfigure.properties.McpSseClientProperties;
 import org.springframework.ai.mcp.client.autoconfigure.properties.McpClientCommonProperties;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfiguration;

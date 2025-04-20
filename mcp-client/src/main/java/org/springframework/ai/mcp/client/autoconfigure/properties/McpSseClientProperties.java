@@ -1,4 +1,4 @@
-package org.springframework.ai.autoconfigure.mcp.client.properties;
+package org.springframework.ai.mcp.client.autoconfigure.properties;
 
 import java.util.HashMap;
 import java.util.Map;

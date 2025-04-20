@@ -23,13 +23,13 @@ public class TimeController {
 
     public TimeController(ChatClient.Builder chatClientBuilder, ToolCallbackProvider tools) {
         List<ToolCallback> toolCallbacks = new ArrayList<>();
-//        for (FunctionCallback toolCallback : tools.getToolCallbacks()) {
-//            String ToolName = toolCallback.getName();
-//            if (ToolName.equals("getCiteTimeMethod")) {
-//                toolCallbacks.add((ToolCallback) toolCallback);
-//                break;
-//            }
-//        }
+        for (FunctionCallback toolCallback : tools.getToolCallbacks()) {
+            String ToolName = toolCallback.getName();
+            if (ToolName.equals("getCiteTimeMethod")) {
+                toolCallbacks.add((ToolCallback) toolCallback);
+                break;
+            }
+        }
         this.chatClient = chatClientBuilder
                 .defaultTools(toolCallbacks)
                 .build();

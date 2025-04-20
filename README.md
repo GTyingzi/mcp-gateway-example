@@ -13,7 +13,7 @@
   - mcp-server: 连接了两个服务：mcp-restful和mcp-restful-second  
   - mcp-server-second：连接了1个服务：mcp-restful-threed
 - MCP Client
-  - mcp-client: 连接了两个服务：mcp-restful和mcp-restful-second
+  - mcp-client: 连接了两个服务：mcp-server和mcp-server-second
 
 ### 快速启动
 #### 配置nacos

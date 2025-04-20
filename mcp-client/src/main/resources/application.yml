@@ -15,11 +15,11 @@ spring:
         sse:
           connections:
             server1:
-              url: http://localhost:18090
+              url: http://localhost:19000
               headers-map:
                 token-yingzi: yingzi
             server2:
-              url: http://localhost:18091
+              url: http://localhost:19100
               headers-map:
                 token-yingzi-2: yingzi2
 

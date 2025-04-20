@@ -9,7 +9,7 @@ import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.GenericBeanDefinition;
 import org.springframework.context.ApplicationContext;
 
-@Configuration("NacosConfig")
+@Configuration
 public class NacosConfig {
 
     @Autowired

@@ -1,5 +1,5 @@
 server:
-  port: 18091
+  port: ${SERVER_PORT:19100}
 spring:
   application:
     name: service-gateway-second

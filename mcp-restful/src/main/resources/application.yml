@@ -1,5 +1,5 @@
 server:
-  port: 18081
+  port: ${SERVER_PORT:18081}  # 默认端口为18081，可以通过命令行参数SERVER_PORT覆盖
 
 spring:
   application:

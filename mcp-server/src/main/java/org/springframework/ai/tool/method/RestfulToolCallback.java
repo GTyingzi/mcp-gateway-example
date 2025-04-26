@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ai.chat.model.ToolContext;
 import org.springframework.ai.tool.ToolCallback;
+import org.springframework.ai.tool.definition.RestfulToolDefinition;
 import org.springframework.ai.tool.definition.ToolDefinition;
 import org.springframework.ai.util.json.JsonParser;
 import org.springframework.cloud.client.ServiceInstance;
@@ -23,20 +24,16 @@ import java.util.Map;
 public class RestfulToolCallback implements ToolCallback {
 
     private static final Logger logger = LoggerFactory.getLogger(RestfulToolCallback.class);
-
-    private final ToolDefinition toolDefinition;
-    // 方法名称到接口路径到映射
-    private final Map<String, String> methodName2Path;
-    private final String serviceId;
+    private final RestfulToolDefinition toolDefinition;
+    private final WebClient webClient;
     private Map<String, String> headersMap;
 
-    public RestfulToolCallback(ToolDefinition toolDefinition, Map<String, String> methodName2Path, String serviceId) {
+
+    public RestfulToolCallback(ToolDefinition toolDefinition) {
         Assert.notNull(toolDefinition, "toolDefinition cannot be null");
-        Assert.notNull(methodName2Path, "methodName2Path cannot be null");
-        Assert.notNull(serviceId, "serviceId cannot be null");
-        this.toolDefinition = toolDefinition;
-        this.methodName2Path = methodName2Path;
-        this.serviceId = serviceId;
+        Assert.isInstanceOf(RestfulToolDefinition.class, toolDefinition, "toolDefinition must be an instance of RestfulToolDefinition");
+        this.toolDefinition = (RestfulToolDefinition) toolDefinition;
+        this.webClient = ApplicationContextHolder.getBean(WebClient.class);
     }
 
     @Override
@@ -55,7 +52,7 @@ public class RestfulToolCallback implements ToolCallback {
         
         LoadBalancerClient loadBalancerClient = ApplicationContextHolder.getBean(LoadBalancerClient.class);
         
-        String path = methodName2Path.get(toolDefinition.name());
+        String path = toolDefinition.methodName2Path().get(toolDefinition.name());
         Map<String, Object> toolArguments = extractToolArguments(toolInput);
 
         StringBuilder uriBuilder = new StringBuilder().append(path).append("?");
@@ -68,14 +65,14 @@ public class RestfulToolCallback implements ToolCallback {
         }
 
         // 使用 LoadBalancerClient 获取服务实例并构建完整URL
-        ServiceInstance instance = loadBalancerClient.choose(serviceId);
+        ServiceInstance instance = loadBalancerClient.choose(toolDefinition.serviceName());
         if (instance == null) {
-            throw new RuntimeException("No available service instance for " + serviceId);
+            throw new RuntimeException("No available service instance for " + toolDefinition.serviceName());
         }
 
         String url = instance.getUri().toString() + uri;
-        WebClient gloableWebClient = ApplicationContextHolder.getBean(WebClient.class);
-        String restfulResult = gloableWebClient.get()
+        logger.info("Calling restful service: {}", url);
+        String restfulResult = webClient.get()
                 .uri(url)
                 .headers(headers -> {
                     if (this.headersMap != null) {
@@ -106,10 +103,6 @@ public class RestfulToolCallback implements ToolCallback {
 
     public static class Builder {
         private ToolDefinition toolDefinition;
-        
-        private Map<String, String> methodName2Path;
-        
-        private String serviceId;
 
         private Builder() {
         }
@@ -119,18 +112,8 @@ public class RestfulToolCallback implements ToolCallback {
             return this;
         }
 
-        public Builder methodName2Path(Map<String, String> methodName2Path) {
-            this.methodName2Path = methodName2Path;
-            return this;
-        }
-        
-        public Builder serviceId(String serviceId) {
-            this.serviceId = serviceId;
-            return this;
-        }
-
         public RestfulToolCallback build() {
-            return new RestfulToolCallback(this.toolDefinition, this.methodName2Path, this.serviceId);
+            return new RestfulToolCallback(this.toolDefinition);
         }
     }
 }

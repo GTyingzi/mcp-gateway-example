@@ -1,11 +1,9 @@
 package com.yingzi.nacos.gateway;
 
-import com.yingzi.nacos.gateway.component.RestfulToolComponent;
-import org.springframework.ai.tool.ToolCallbackProvider;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
-import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 
 /**
  * @author yingzi
@@ -13,14 +11,12 @@ import org.springframework.context.annotation.Bean;
  */
 @SpringBootApplication
 @EnableDiscoveryClient
+@ComponentScan(basePackages = {"org.springframework.ai.mcp.server.autoconfigure", "com.yingzi.nacos.gateway"})
 public class GatewayApplication {
 
     public static void main(String[] args) {
         SpringApplication.run(GatewayApplication.class, args);
     }
 
-    @Bean
-    public ToolCallbackProvider toolCallbackProvider(RestfulToolComponent restfulToolComponent) {
-        return restfulToolComponent.parseRestfulInfo();
-    }
+
 }

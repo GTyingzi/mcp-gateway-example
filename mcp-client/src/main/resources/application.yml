@@ -20,9 +20,16 @@ spring:
     mcp:
       client:
         enabled: true
+        name: mcp-client-webflux
+        version: 0.0.1
+        initialized: true
         request-timeout: 600s
+
+        type: sync
         toolcallback:
           enabled: true
+        root-change-notification: true
+
         sse:
           connections:
             server1:

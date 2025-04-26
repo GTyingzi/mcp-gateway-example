@@ -1,9 +1,11 @@
 package com.yingzi.mcp.client.webflux.controller;
 
+import io.modelcontextprotocol.client.McpSyncClient;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.model.function.FunctionCallback;
 import org.springframework.ai.tool.ToolCallback;
 import org.springframework.ai.tool.ToolCallbackProvider;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -20,6 +22,9 @@ import java.util.List;
 public class TimeController {
 
     private final ChatClient chatClient;
+
+    @Autowired
+    private List<McpSyncClient> mcpSyncClients;
 
     public TimeController(ChatClient.Builder chatClientBuilder, ToolCallbackProvider tools) {
         List<ToolCallback> toolCallbacks = new ArrayList<>();

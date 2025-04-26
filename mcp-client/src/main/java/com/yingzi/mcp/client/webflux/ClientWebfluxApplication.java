@@ -37,6 +37,9 @@ public class ClientWebfluxApplication {
                 if (userInput.equalsIgnoreCase("exit")) {
                     break;
                 }
+                if (userInput.isEmpty()) {
+                    userInput = "北京时间现在几点钟";
+                }
                 System.out.println("\n>>> ASSISTANT: " + chatClient.prompt(userInput).call().content());
             }
             scanner.close();

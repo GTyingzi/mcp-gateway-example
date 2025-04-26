@@ -1,5 +1,5 @@
 server:
-  port: ${SERVER_PORT:19001}
+  port: ${SERVER_PORT:19000}
 spring:
   application:
     name: service-gateway
@@ -12,8 +12,8 @@ spring:
         password: nacos
         server-addr: 127.0.0.1:8848
       restful-services:
-        - mcp-restful-second-provider
         - mcp-restful-provider
+        - mcp-restful-second-provider
 
 management:
   endpoints:

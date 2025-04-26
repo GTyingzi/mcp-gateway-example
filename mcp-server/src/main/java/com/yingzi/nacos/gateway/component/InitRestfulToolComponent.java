@@ -10,43 +10,38 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ai.tool.ToolCallback;
 import org.springframework.ai.tool.ToolCallbackProvider;
-import org.springframework.ai.tool.definition.DefaultToolDefinition;
+import org.springframework.ai.tool.definition.RestfulToolDefinition;
 import org.springframework.ai.tool.method.RestfulToolCallbacProvider;
 import org.springframework.ai.tool.method.RestfulToolCallback;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.loadbalancer.LoadBalancerClient;
-import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author yingzi
  * @date 2025/4/6:13:31
  * 解析Restful信息，注册ToolCallbackProvider
  */
-@Component
-public class RestfulToolComponent {
+public class InitRestfulToolComponent implements EventListener {
 
-    private static final Logger logger = LoggerFactory.getLogger(RestfulToolComponent.class);
+    private static final Logger logger = LoggerFactory.getLogger(InitRestfulToolComponent.class);
     private static final String API_DOC_URL = "/v3/api-docs";
-
-    private final LoadBalancerClient loadBalancerClient;
     private final ObjectMapper objectMapper;
     private final List<ToolCallback> toolCallbackList;
     private final RestfulServicesConfig restfulServicesConfig;
 
-    public RestfulToolComponent(LoadBalancerClient loadBalancerClient, RestfulServicesConfig restfulServicesConfig) {
-        this.loadBalancerClient = loadBalancerClient;
+    public InitRestfulToolComponent(RestfulServicesConfig restfulServicesConfig) {
         this.objectMapper = new ObjectMapper();
         this.toolCallbackList = new ArrayList<>();
         this.restfulServicesConfig = restfulServicesConfig;
     }
 
     private void initializeTools() {
+        LoadBalancerClient loadBalancerClient = ApplicationContextHolder.getBean(LoadBalancerClient.class);
+        WebClient globalWebClient = ApplicationContextHolder.getBean(WebClient.class);
+
         for (String serviceName : restfulServicesConfig.getRestfulServices()) {
             try {
                 // 使用 LoadBalancerClient 获取服务实例
@@ -57,7 +52,6 @@ public class RestfulToolComponent {
                 }
 
                 String url = instance.getUri().toString() + API_DOC_URL;
-                WebClient globalWebClient = ApplicationContextHolder.getBean(WebClient.class);
                 String apiDocJson = globalWebClient.get()
                         .uri(url)
                         .retrieve()
@@ -69,23 +63,20 @@ public class RestfulToolComponent {
                 Map<String, String> methodName2Path = new HashMap<>();
                 
                 paths.forEach((path, pathItem) -> {
-                    if (path.equals("/echo/nacos")) {
-                        return;
-                    }
                     // 保存接口信息
                     logger.info("Loading path for service {}: {}", serviceName, path);
                     String methodName = pathItem.operation().getMethodName();
                     methodName2Path.put(methodName, path);
                     // 构建toolObject对象
                     RestfulToolCallback restfulToolCallback = RestfulToolCallback.builder()
-                            .toolDefinition(DefaultToolDefinition.builder()
+                            .toolDefinition(RestfulToolDefinition.builder()
                                     .name(methodName)
                                     .description(pathItem.getGetOperation().getDescription())
                                     .inputSchema(JSONSchemaUtil.getInputSchema(pathItem.operation().getParameters()))
+                                    .serviceName(serviceName)
+                                    .methodName2Path(methodName2Path)
                                     .build()
                             )
-                            .methodName2Path(methodName2Path)
-                            .serviceId(serviceName)
                             .build();
                     toolCallbackList.add(restfulToolCallback);
                 });
@@ -97,8 +88,20 @@ public class RestfulToolComponent {
         }
     }
 
-    public List<ToolCallback> getToolCallbackList() {
-        return toolCallbackList;
+    public Map<String, Set<String>> getService2tool() {
+        Map<String, Set<String>> service2tool = new HashMap<>();
+        for (ToolCallback toolCallback : toolCallbackList) {
+            RestfulToolCallback restfulToolCallback = (RestfulToolCallback) toolCallback;
+            RestfulToolDefinition restfulToolDefinition = (RestfulToolDefinition) restfulToolCallback.getToolDefinition();
+
+            String serviceName = restfulToolDefinition.serviceName();
+            String toolName = restfulToolDefinition.name();
+            if (!service2tool.containsKey(serviceName)) {
+                service2tool.put(serviceName, new HashSet<>());
+            }
+            service2tool.get(serviceName).add(toolName);
+        }
+        return service2tool;
     }
 
     public ToolCallbackProvider parseRestfulInfo() {
@@ -106,4 +109,5 @@ public class RestfulToolComponent {
         ToolCallback[] toolCallbacks = toolCallbackList.toArray(new ToolCallback[0]);
         return RestfulToolCallbacProvider.builder().toolCallbacks(toolCallbacks).build();
     }
+
 }

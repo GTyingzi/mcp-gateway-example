@@ -2,18 +2,18 @@ server:
   port: ${SERVER_PORT:19000}
 spring:
   application:
-    name: service-gateway
+    name: mcp-server-provider
 
   cloud:
     # nacos注册中心配置
     nacos:
-      discovery:
-        username: nacos
-        password: nacos
-        server-addr: 127.0.0.1:8848
+#      discovery:
+#        username: nacos
+#        password: nacos
+#        server-addr: 127.0.0.1:8848
       restful-services:
         - mcp-restful-provider
-        - mcp-restful-second-provider
+#        - mcp-restful-second-provider
 
 management:
   endpoints:
@@ -28,10 +28,19 @@ spring:
   ai:
     mcp:
       server:
-        name: mcp-restful-provider
-        version: 0.0.1
+        name: mcp-server-provider
+        version: 1.0.1
 #        sse-message-endpoint: /mcp/messages
-        type: sync
+        type: SYNC
+    alibaba:
+      mcp:
+        nacos:
+          enabled: true
+          service-namespace: 9ba5f1aa-b37d-493b-9057-72918a40ef35
+          service-group: mcp-server
+          server-addr: 127.0.0.1:8848
+          username: nacos
+          password: nacos
 
 # 调试日志
 logging:
@@ -40,3 +49,4 @@ logging:
       modelcontextprotocol:
         client: DEBUG
         spec: DEBUG
+        server: DEBUG

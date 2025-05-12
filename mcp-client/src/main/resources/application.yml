@@ -16,7 +16,23 @@ spring:
         options:
           model: qwen-max
 
+    alibaba:
+      mcp:
+        nacos:
+          enabled: true
+          service-namespace: 9ba5f1aa-b37d-493b-9057-72918a40ef35
+          server-addr: 127.0.0.1:8848
+          username: nacos
+          password: nacos
 
+        client:
+          sse:
+            connections:
+              server1: mcp-server-provider
+#              mcp-server-provider-mcp-service:
+#                service-name: mcp-server-provider-mcp-service
+#                group: mcp-server
+#                data-id: mcp-server-provider-mcp-server.json
     mcp:
       client:
         enabled: true
@@ -25,21 +41,33 @@ spring:
         initialized: true
         request-timeout: 600s
 
-        type: sync
+        nacos-enabled: true
+
+        type: Async
         toolcallback:
           enabled: true
         root-change-notification: true
 
-        sse:
-          connections:
-            server1:
-              url: http://localhost:19000
-              headers-map:
-                token-yingzi: yingzi
-#            server2:
+#        sse:
+#          connections:
+#            server1:
+#              url: http://localhost:19000
+#              headers-map:
+#                token-yingzi: yingzi
+  #            server2:
 #              url: http://localhost:19100
 #              headers-map:
 #                token-yingzi-2: yingzi2
+
+
+
+#  cloud:
+#    # nacos注册中心配置
+#    nacos:
+#      discovery:
+#        username: nacos
+#        password: nacos
+#        server-addr: 127.0.0.1:8848
 
 # 调试日志
 logging:

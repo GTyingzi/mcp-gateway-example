@@ -1,20 +1,23 @@
 package com.yingzi.mcp.client.webflux;
 
 import org.springframework.ai.chat.client.ChatClient;
-import org.springframework.ai.mcp.SyncMcpToolCallbackProvider;
+import org.springframework.ai.mcp.client.autoconfigure.SseHttpClientTransportAutoConfiguration;
 import org.springframework.ai.tool.ToolCallbackProvider;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.web.client.RestClient;
 
 import java.util.Scanner;
 
 @SpringBootApplication(exclude = {
-        org.springframework.ai.mcp.client.autoconfigure.SseHttpClientTransportAutoConfiguration.class
+        SseHttpClientTransportAutoConfiguration.class,
 })
+@ComponentScan(basePackages = {"com.alibaba.cloud.ai.mcp.nacos", "com.yingzi.mcp.client.webflux"})
 public class ClientWebfluxApplication {
 
     public static void main(String[] args) {
@@ -22,7 +25,7 @@ public class ClientWebfluxApplication {
     }
 
     @Bean
-    public CommandLineRunner predefinedQuestions(ChatClient.Builder chatClientBuilder, ToolCallbackProvider tools,
+    public CommandLineRunner predefinedQuestions(ChatClient.Builder chatClientBuilder, @Qualifier("loadbalancedMcpAsyncToolCallbacks") ToolCallbackProvider tools,
                                                  ConfigurableApplicationContext context) {
 
         return args -> {

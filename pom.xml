@@ -34,6 +34,7 @@
         <spring-ai.version>1.0.0-M7</spring-ai.version>
         <ai-alibaba.version>1.0.0-M6.1</ai-alibaba.version>
         <springdoc-openapi-starter-webmvc-ui.version>2.0.2</springdoc-openapi-starter-webmvc-ui.version>
+        <nacos-client.version>2.4.2</nacos-client.version>
     </properties>
 
     <dependencyManagement>

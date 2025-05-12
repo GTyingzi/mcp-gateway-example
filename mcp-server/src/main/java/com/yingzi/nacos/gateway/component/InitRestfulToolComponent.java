@@ -1,5 +1,7 @@
 package com.yingzi.nacos.gateway.component;
 
+import com.alibaba.nacos.api.naming.NamingService;
+import com.alibaba.nacos.api.naming.pojo.Instance;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yingzi.nacos.gateway.config.RestfulServicesConfig;
@@ -31,27 +33,29 @@ public class InitRestfulToolComponent implements EventListener {
     private final ObjectMapper objectMapper;
     private final List<ToolCallback> toolCallbackList;
     private final RestfulServicesConfig restfulServicesConfig;
+    private final NamingService namingService;
 
-    public InitRestfulToolComponent(RestfulServicesConfig restfulServicesConfig) {
+    public InitRestfulToolComponent(RestfulServicesConfig restfulServicesConfig, NamingService namingService) {
+        this.namingService = namingService;
         this.objectMapper = new ObjectMapper();
         this.toolCallbackList = new ArrayList<>();
         this.restfulServicesConfig = restfulServicesConfig;
     }
 
     private void initializeTools() {
-        LoadBalancerClient loadBalancerClient = ApplicationContextHolder.getBean(LoadBalancerClient.class);
         WebClient globalWebClient = ApplicationContextHolder.getBean(WebClient.class);
 
         for (String serviceName : restfulServicesConfig.getRestfulServices()) {
             try {
-                // 使用 LoadBalancerClient 获取服务实例
-                ServiceInstance instance = loadBalancerClient.choose(serviceName);
-                if (instance == null) {
+                List<Instance> instances = namingService.selectInstances(serviceName, true);
+                if (instances.isEmpty()) {
                     logger.error("No available service instance for {}", serviceName);
-                    continue;
                 }
+                Instance instance = instances.get(0);
+                String url = instance.getMetadata().getOrDefault("scheme", "http") + "://" + instance.getIp() + ":"
+                        + instance.getPort();
+                url = url + API_DOC_URL;
 
-                String url = instance.getUri().toString() + API_DOC_URL;
                 String apiDocJson = globalWebClient.get()
                         .uri(url)
                         .retrieve()

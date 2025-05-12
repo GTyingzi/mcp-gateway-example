@@ -19,29 +19,29 @@ import java.util.List;
 @RequestMapping("/weather")
 public class WeatherController {
 
-    private final ChatClient chatClient;
-
-    public WeatherController(ChatClient.Builder chatClientBuilder, ToolCallbackProvider tools) {
-        List<ToolCallback> toolCallbacks = new ArrayList<>();
-//        for (FunctionCallback toolCallback : tools.getToolCallbacks()) {
-//            String ToolName = toolCallback.getName();
-//            if (ToolName.equals("getWeatherForecastByLocation")) {
-//                toolCallbacks.add((ToolCallback) toolCallback);
-//                break;
-//            }
-//        }
-        this.chatClient = chatClientBuilder
-                .defaultTools(toolCallbacks)
-                .build();
-    }
-
-    @RequestMapping("/no-time")
-    public String chatTime(@RequestParam(value = "query", defaultValue = "请告诉我现在北京时间几点了") String query) {
-        return chatClient.prompt(query).call().content();
-    }
-
-    @RequestMapping("/chat")
-    public String chatWeather(@RequestParam(value = "query", defaultValue = "请告诉我北京1天以后的天气") String query) {
-        return chatClient.prompt(query).call().content();
-    }
+//    private final ChatClient chatClient;
+//
+//    public WeatherController(ChatClient.Builder chatClientBuilder, ToolCallbackProvider tools) {
+//        List<ToolCallback> toolCallbacks = new ArrayList<>();
+////        for (FunctionCallback toolCallback : tools.getToolCallbacks()) {
+////            String ToolName = toolCallback.getName();
+////            if (ToolName.equals("getWeatherForecastByLocation")) {
+////                toolCallbacks.add((ToolCallback) toolCallback);
+////                break;
+////            }
+////        }
+//        this.chatClient = chatClientBuilder
+//                .defaultTools(toolCallbacks)
+//                .build();
+//    }
+//
+//    @RequestMapping("/no-time")
+//    public String chatTime(@RequestParam(value = "query", defaultValue = "请告诉我现在北京时间几点了") String query) {
+//        return chatClient.prompt(query).call().content();
+//    }
+//
+//    @RequestMapping("/chat")
+//    public String chatWeather(@RequestParam(value = "query", defaultValue = "请告诉我北京1天以后的天气") String query) {
+//        return chatClient.prompt(query).call().content();
+//    }
 }

@@ -1,11 +1,14 @@
 package com.yingzi.nacos.gateway.component;
 
+import com.alibaba.nacos.api.config.ConfigChangeEvent;
+import com.alibaba.nacos.api.config.ConfigChangeItem;
 import com.alibaba.nacos.api.exception.NacosException;
 import com.alibaba.nacos.api.naming.NamingService;
 import com.alibaba.nacos.api.naming.listener.Event;
 import com.alibaba.nacos.api.naming.listener.EventListener;
 import com.alibaba.nacos.api.naming.listener.NamingEvent;
 import com.alibaba.nacos.api.naming.pojo.Instance;
+import com.alibaba.nacos.client.config.listener.impl.AbstractConfigChangeListener;
 import com.alibaba.nacos.common.utils.JacksonUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -18,7 +21,7 @@ import org.springframework.ai.tool.definition.RestfulToolDefinition;
 import org.springframework.ai.tool.definition.ToolDefinition;
 import org.springframework.ai.tool.method.DynamicMcpToolsProvider;
 import org.springframework.cloud.client.ServiceInstance;
-import org.springframework.cloud.client.loadbalancer.LoadBalancerClient;;
+import org.springframework.cloud.client.loadbalancer.LoadBalancerClient;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import java.util.*;
@@ -27,12 +30,11 @@ import java.util.*;
  * @author yingzi
  * @date 2025/4/24:12:48
  */
-public class DynamicRestfulToolsWatch implements EventListener {
+public class DynamicRestfulToolsWatch extends AbstractConfigChangeListener implements EventListener {
     private static final Logger logger = LoggerFactory.getLogger(DynamicRestfulToolsWatch.class);
     private final NamingService namingService;
     private final DynamicMcpToolsProvider dynamicMcpToolsProvider;
     private String changeServiceName = null;
-    private Map<String, Boolean> service2status = new HashMap<>();
     private final Map<String, Set<String>> service2tool;
     private static final String API_DOC_URL = "/v3/api-docs";
 
@@ -55,17 +57,18 @@ public class DynamicRestfulToolsWatch implements EventListener {
     }
 
     private void parse(String serviceName) {
-        LoadBalancerClient loadBalancerClient = ApplicationContextHolder.getBean(LoadBalancerClient.class);
         WebClient globalWebClient = ApplicationContextHolder.getBean(WebClient.class);
         ObjectMapper objectMapper = new ObjectMapper();
         try {
-            // 使用 LoadBalancerClient 获取服务实例
-            ServiceInstance instance = loadBalancerClient.choose(serviceName);
-            if (instance == null) {
+            List<Instance> instances = namingService.selectInstances(serviceName, true);
+            if (instances.isEmpty()) {
                 logger.error("No available service instance for {}", serviceName);
-                return;
             }
-            String url = instance.getUri().toString() + API_DOC_URL;
+            Instance instance = instances.get(0);
+            String url = instance.getMetadata().getOrDefault("scheme", "http") + "://" + instance.getIp() + ":"
+                    + instance.getPort();
+            url = url + API_DOC_URL;
+
             String apiDocJson = globalWebClient.get()
                     .uri(url)
                     .retrieve()
@@ -138,4 +141,13 @@ public class DynamicRestfulToolsWatch implements EventListener {
         }
     }
 
+    @Override
+    public void receiveConfigChange(ConfigChangeEvent event) {
+        for (ConfigChangeItem item : event.getChangeItems()) {
+            String dataId = item.getKey();
+            if (dataId.startsWith("mcp-server-provider")) {
+                logger.info("Received config change event for dataId: {}", dataId);
+            }
+        }
+    }
 }

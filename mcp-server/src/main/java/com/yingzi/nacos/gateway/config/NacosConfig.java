@@ -1,4 +1,3 @@
-
 package com.yingzi.nacos.gateway.config;
 
 import com.alibaba.nacos.api.config.annotation.NacosConfigListener;
@@ -11,11 +10,11 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.GenericBeanDefinition;
 import org.springframework.context.ApplicationContext;
-
+//
 @Configuration
 @LoadBalancerClients({
   @LoadBalancerClient("mcp-restful-provider"),
-  @LoadBalancerClient("mcp-restful-second-provider")
+//  @LoadBalancerClient("mcp-restful-second-provider")
 })
 public class NacosConfig {
 

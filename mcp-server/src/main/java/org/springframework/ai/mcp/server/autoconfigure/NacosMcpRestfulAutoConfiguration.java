@@ -1,7 +1,9 @@
 package org.springframework.ai.mcp.server.autoconfigure;
 
-import com.alibaba.cloud.nacos.NacosDiscoveryProperties;
-import com.alibaba.cloud.nacos.NacosServiceManager;
+import com.alibaba.cloud.ai.mcp.nacos.common.NacosMcpRegistryProperties;
+import com.alibaba.nacos.api.exception.NacosException;
+import com.alibaba.nacos.api.naming.NamingFactory;
+import com.alibaba.nacos.api.naming.NamingService;
 import com.yingzi.nacos.gateway.component.DynamicRestfulToolsWatch;
 import com.yingzi.nacos.gateway.component.InitRestfulToolComponent;
 import com.yingzi.nacos.gateway.config.RestfulServicesConfig;
@@ -13,11 +15,13 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.log.LogAccessor;
 
+import java.util.Properties;
+
 /**
  * @author yingzi
  * @date 2025/4/24:13:35
  */
-@AutoConfiguration(after = NacosServiceManager.class)
+@AutoConfiguration
 @EnableConfigurationProperties({RestfulServicesConfig.class})
 public class NacosMcpRestfulAutoConfiguration {
 
@@ -25,11 +29,22 @@ public class NacosMcpRestfulAutoConfiguration {
 
     public NacosMcpRestfulAutoConfiguration() {
     }
+
     @Bean
-    public DynamicRestfulToolsWatch dynamicRestfulToolsWatch(NacosServiceManager nacosServiceManager, DynamicMcpSyncToolsProvider dynamicMcpSyncToolsProvider, NacosDiscoveryProperties nacosDiscoveryProperties) {
+    public NamingService namingService(NacosMcpRegistryProperties nacosMcpRegistryProperties) {
+        Properties nacosProperties = nacosMcpRegistryProperties.getNacosProperties();
+        try {
+            return NamingFactory.createNamingService(nacosProperties);
+        }
+        catch (NacosException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Bean
+    public DynamicRestfulToolsWatch dynamicRestfulToolsWatch(NamingService namingService, DynamicMcpSyncToolsProvider dynamicMcpSyncToolsProvider) {
         logger.info("Starting DynamicRestfulToolsWatch");
-        nacosServiceManager.setNacosDiscoveryProperties(nacosDiscoveryProperties);
-        return new DynamicRestfulToolsWatch(nacosServiceManager.getNamingService(), dynamicMcpSyncToolsProvider);
+        return new DynamicRestfulToolsWatch(namingService, dynamicMcpSyncToolsProvider);
     }
 
     @Bean
@@ -39,9 +54,9 @@ public class NacosMcpRestfulAutoConfiguration {
     }
 
     @Bean
-    public InitRestfulToolComponent restfulToolComponent(RestfulServicesConfig restfulServicesConfig) {
+    public InitRestfulToolComponent restfulToolComponent(RestfulServicesConfig restfulServicesConfig, NamingService namingService) {
         logger.info("Starting RestfulToolComponent");
-        return new InitRestfulToolComponent(restfulServicesConfig);
+        return new InitRestfulToolComponent(restfulServicesConfig, namingService);
     }
 
     @Bean

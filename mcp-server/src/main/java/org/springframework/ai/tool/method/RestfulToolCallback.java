@@ -1,5 +1,8 @@
 package org.springframework.ai.tool.method;
 
+import com.alibaba.nacos.api.exception.NacosException;
+import com.alibaba.nacos.api.naming.NamingService;
+import com.alibaba.nacos.api.naming.pojo.Instance;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.yingzi.nacos.gateway.utils.ApplicationContextHolder;
 import org.slf4j.Logger;
@@ -15,6 +18,7 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.web.reactive.function.client.WebClient;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -50,7 +54,7 @@ public class RestfulToolCallback implements ToolCallback {
         Assert.hasText(toolInput, "toolInput cannot be null or empty");
         logger.debug("Starting execution of tool: {}", this.toolDefinition.name());
         
-        LoadBalancerClient loadBalancerClient = ApplicationContextHolder.getBean(LoadBalancerClient.class);
+        NamingService namingService = ApplicationContextHolder.getBean(NamingService.class);
         
         String path = toolDefinition.methodName2Path().get(toolDefinition.name());
         Map<String, Object> toolArguments = extractToolArguments(toolInput);
@@ -64,13 +68,20 @@ public class RestfulToolCallback implements ToolCallback {
             uri = uri.substring(0, uri.length() - 1);
         }
 
-        // 使用 LoadBalancerClient 获取服务实例并构建完整URL
-        ServiceInstance instance = loadBalancerClient.choose(toolDefinition.serviceName());
-        if (instance == null) {
-            throw new RuntimeException("No available service instance for " + toolDefinition.serviceName());
+        List<Instance> instances = null;
+        try {
+            instances = namingService.selectInstances(toolDefinition.serviceName(), true);
+        } catch (NacosException e) {
+            logger.error("解析Restful 信息失败，服务名称: {}", toolDefinition.serviceName(), e);
         }
+        if (instances.isEmpty()) {
+            logger.error("No available service instance for {}", toolDefinition.serviceName());
+        }
+        Instance instance = instances.get(0);
+        String url = instance.getMetadata().getOrDefault("scheme", "http") + "://" + instance.getIp() + ":"
+                + instance.getPort();
 
-        String url = instance.getUri().toString() + uri;
+        url = url + uri;
         logger.info("Calling restful service: {}", url);
         String restfulResult = webClient.get()
                 .uri(url)
@@ -97,7 +108,7 @@ public class RestfulToolCallback implements ToolCallback {
         });
     }
 
-    public static RestfulToolCallback.Builder builder() {
+    public static Builder builder() {
         return new RestfulToolCallback.Builder();
     }
 

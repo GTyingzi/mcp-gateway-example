@@ -43,7 +43,7 @@ spring:
 
         nacos-enabled: true
 
-        type: Async
+        type: sync
         toolcallback:
           enabled: true
         root-change-notification: true

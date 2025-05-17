@@ -25,13 +25,13 @@ import java.util.List;
         after = {NacosMcpClientAutoConfiguration.class}
 )
 @EnableConfigurationProperties({McpClientCommonProperties.class})
-@Conditional({McpToolCallbackAutoConfiguration.McpToolCallbackAutoconfigurationCondition.class})
+@Conditional({McpToolCallbackAutoConfiguration.McpToolCallbackAutoConfigurationCondition.class})
 public class NacosMcpToolCallbackAutoConfiguration {
 
     public NacosMcpToolCallbackAutoConfiguration() {
     }
 
-    @Bean(name = "loadbalancedMcpToolCallbacks")
+    @Bean(name = "loadbalancedSyncMcpToolCallbacks")
     @ConditionalOnProperty(
             prefix = "spring.ai.mcp.client",
             name = {"type"},

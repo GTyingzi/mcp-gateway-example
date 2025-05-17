@@ -63,48 +63,28 @@ public class NacosMcpClientAutoConfiguration {
     @ConditionalOnProperty(prefix = "spring.ai.mcp.client", name = {"type"}, havingValue = "SYNC",
             matchIfMissing = true)
     public List<LoadbalancedMcpSyncClient> loadbalancedMcpSyncClientList(
-            ObjectProvider<McpSyncClientConfigurer> mcpSyncClientConfigurerProvider,
-            McpClientCommonProperties commonProperties,
             @Qualifier("server2NamedTransport") ObjectProvider<Map<String, List<NamedClientMcpTransport>>> server2NamedTransportProvider,
-            ObjectProvider<NamingService> namingServiceProvider) {
+            ObjectProvider<NamingService> namingServiceProvider,
+            ObjectProvider<NacosConfigService> nacosConfigServiceProvider) {
         NamingService namingService = namingServiceProvider.getObject();
-        McpSyncClientConfigurer mcpSyncClientConfigurer = mcpSyncClientConfigurerProvider.getObject();
+        NacosConfigService nacosConfigService = nacosConfigServiceProvider.getObject();
 
         List<LoadbalancedMcpSyncClient> loadbalancedMcpSyncClients = new ArrayList<>();
         Map<String, List<NamedClientMcpTransport>> server2NamedTransport = server2NamedTransportProvider.getObject();
         for (Map.Entry<String, List<NamedClientMcpTransport>> entry : server2NamedTransport.entrySet()) {
             String serviceName = entry.getKey();
-            List<NamedClientMcpTransport> namedTransports = entry.getValue();
-            List<McpSyncClient> mcpSyncClients = new ArrayList<>();
-
-            McpSyncClient syncClient;
-            for (NamedClientMcpTransport namedTransport : namedTransports) {
-                McpSchema.Implementation clientInfo = new McpSchema.Implementation(
-                        this.connectedClientName(commonProperties.getName(), namedTransport.name()),
-                        commonProperties.getVersion());
-                McpClient.SyncSpec syncSpec = McpClient.sync(namedTransport.transport())
-                        .clientInfo(clientInfo)
-                        .requestTimeout(commonProperties.getRequestTimeout());
-                syncSpec = mcpSyncClientConfigurer.configure(namedTransport.name(), syncSpec);
-                syncClient = syncSpec.build();
-                if (commonProperties.isInitialized()) {
-                    syncClient.initialize();
-                }
-                mcpSyncClients.add(syncClient);
-            }
 
             LoadbalancedMcpSyncClient loadbalancedMcpSyncClient = LoadbalancedMcpSyncClient.builder()
                     .serviceName(serviceName)
-                    .mcpSyncClientList(mcpSyncClients)
                     .namingService(namingService)
+                    .nacosConfigService(nacosConfigService)
                     .build();
+            loadbalancedMcpSyncClient.init();
             loadbalancedMcpSyncClient.subscribe();
 
             loadbalancedMcpSyncClients.add(loadbalancedMcpSyncClient);
         }
-
         return loadbalancedMcpSyncClients;
-
     }
 
     @Bean
@@ -128,8 +108,6 @@ public class NacosMcpClientAutoConfiguration {
                     .build();
             loadbalancedMcpAsyncClient.initClient();
             loadbalancedMcpAsyncClient.subscribe();
-
-            loadbalancedMcpAsyncClient.md5ToConfig();
 
             loadbalancedMcpAsyncClients.add(loadbalancedMcpAsyncClient);
         }

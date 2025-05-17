@@ -37,7 +37,6 @@ public class LoadbalancedAsyncMcpToolCallbackProvider implements ToolCallbackPro
 
     @Override
     public ToolCallback[] getToolCallbacks() {
-        // todo mcpClient.listTools()改为从naocs中拿工具信息
         List<ToolCallback> toolCallbackList = new ArrayList();
         Iterator var2 = this.mcpClients.iterator();
 

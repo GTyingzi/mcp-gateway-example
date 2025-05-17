@@ -1,6 +1,8 @@
 package org.springframework.ai.mcp.server.autoconfigure;
 
-import com.alibaba.cloud.ai.mcp.nacos.common.NacosMcpRegistryProperties;
+import com.alibaba.cloud.ai.mcp.nacos.NacosMcpRegistryProperties;
+import com.alibaba.cloud.ai.mcp.nacos.common.NacosMcpProperties;
+import com.alibaba.nacos.api.PropertyKeyConst;
 import com.alibaba.nacos.api.exception.NacosException;
 import com.alibaba.nacos.api.naming.NamingFactory;
 import com.alibaba.nacos.api.naming.NamingService;
@@ -22,7 +24,7 @@ import java.util.Properties;
  * @date 2025/4/24:13:35
  */
 @AutoConfiguration
-@EnableConfigurationProperties({RestfulServicesConfig.class})
+@EnableConfigurationProperties({RestfulServicesConfig.class, NacosMcpProperties.class, NacosMcpRegistryProperties.class})
 public class NacosMcpRestfulAutoConfiguration {
 
     private static final LogAccessor logger = new LogAccessor(McpServerAutoConfiguration.class);
@@ -31,8 +33,10 @@ public class NacosMcpRestfulAutoConfiguration {
     }
 
     @Bean
-    public NamingService namingService(NacosMcpRegistryProperties nacosMcpRegistryProperties) {
-        Properties nacosProperties = nacosMcpRegistryProperties.getNacosProperties();
+    public NamingService namingService(NacosMcpProperties nacosMcpProperties, NacosMcpRegistryProperties nacosMcpRegistryProperties) {
+        Properties nacosProperties = nacosMcpProperties.getNacosProperties();
+        nacosProperties.put(PropertyKeyConst.NAMESPACE, nacosMcpRegistryProperties.getServiceNamespace());
+
         try {
             return NamingFactory.createNamingService(nacosProperties);
         }

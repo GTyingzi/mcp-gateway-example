@@ -2,7 +2,6 @@ package org.springframework.ai.tool.method;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.ai.model.function.FunctionCallback;
 import org.springframework.ai.tool.ToolCallback;
 import org.springframework.ai.tool.ToolCallbackProvider;
 import org.springframework.util.Assert;

@@ -1,9 +1,7 @@
 package com.yingzi.mcp.client.webflux.controller;
 
-import com.alibaba.cloud.ai.mcp.nacos.client.transport.LoadbalancedMcpAsyncClient;
 import com.alibaba.cloud.ai.mcp.nacos.client.transport.LoadbalancedMcpSyncClient;
 import org.springframework.ai.chat.client.ChatClient;
-import org.springframework.ai.model.function.FunctionCallback;
 import org.springframework.ai.tool.ToolCallback;
 import org.springframework.ai.tool.ToolCallbackProvider;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,15 +26,15 @@ public class TimeController {
 //    @Autowired
 //    private List<McpSyncClient> mcpSyncClients;
 
-//    @Autowired
-//    private List<LoadbalancedMcpSyncClient> loadbalancedMcpSyncClients;
     @Autowired
-    private List<LoadbalancedMcpAsyncClient> loadbalancedMcpAsyncClients;
+    private List<LoadbalancedMcpSyncClient> loadbalancedMcpSyncClients;
+//    @Autowired
+//    private List<LoadbalancedMcpAsyncClient> loadbalancedMcpAsyncClients;
 
-    public TimeController(ChatClient.Builder chatClientBuilder, @Qualifier("loadbalancedMcpAsyncToolCallbacks") ToolCallbackProvider tools) {
+    public TimeController(ChatClient.Builder chatClientBuilder, @Qualifier("loadbalancedSyncMcpToolCallbacks") ToolCallbackProvider tools) {
         List<ToolCallback> toolCallbacks = new ArrayList<>();
-        for (FunctionCallback toolCallback : tools.getToolCallbacks()) {
-            String ToolName = toolCallback.getName();
+        for (ToolCallback toolCallback : tools.getToolCallbacks()) {
+            String ToolName = toolCallback.getToolDefinition().name();
             if (ToolName.equals("getCiteTimeMethod")) {
                 toolCallbacks.add((ToolCallback) toolCallback);
                 break;
@@ -58,12 +56,7 @@ public class TimeController {
 
     @RequestMapping("/chat-mcp-client")
     public String chatTimeWithMcpClient(@RequestParam(value = "query", defaultValue = "请告诉我现在北京时间几点了") String query) {
-        // 取出第一个
-//        McpSyncClient mcpSyncClient = mcpSyncClients.get(0);
-//        McpSchema.ListToolsResult listToolsResult = mcpSyncClient.listTools();
-
-        LoadbalancedMcpAsyncClient loadbalancedMcpAsyncClient = loadbalancedMcpAsyncClients.get(0);
-
+        LoadbalancedMcpSyncClient loadbalancedMcpSyncClient = loadbalancedMcpSyncClients.get(0);
 
         return chatClient.prompt(query).call().content();
     }

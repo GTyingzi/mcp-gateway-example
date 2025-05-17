@@ -47,7 +47,7 @@ public class InitRestfulToolComponent implements EventListener {
 
         for (String serviceName : restfulServicesConfig.getRestfulServices()) {
             try {
-                List<Instance> instances = namingService.selectInstances(serviceName, true);
+                List<Instance> instances = namingService.selectInstances(serviceName, "DEFAULT_GROUP",true);
                 if (instances.isEmpty()) {
                     logger.error("No available service instance for {}", serviceName);
                 }

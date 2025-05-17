@@ -25,12 +25,12 @@ public class ClientWebfluxApplication {
     }
 
     @Bean
-    public CommandLineRunner predefinedQuestions(ChatClient.Builder chatClientBuilder, @Qualifier("loadbalancedMcpAsyncToolCallbacks") ToolCallbackProvider tools,
+    public CommandLineRunner predefinedQuestions(ChatClient.Builder chatClientBuilder, @Qualifier("loadbalancedSyncMcpToolCallbacks") ToolCallbackProvider tools,
                                                  ConfigurableApplicationContext context) {
 
         return args -> {
             var chatClient = chatClientBuilder
-                    .defaultTools(tools)
+                    .defaultToolCallbacks(tools.getToolCallbacks())
                     .build();
 
             Scanner scanner = new Scanner(System.in);

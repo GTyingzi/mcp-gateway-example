@@ -1,6 +1,8 @@
 package com.alibaba.cloud.ai.mcp.nacos.client;
 
-import com.alibaba.cloud.ai.mcp.nacos.NacosMcpRegistryProperties;
+import com.alibaba.cloud.ai.mcp.nacos.NacosMcpProperties;
+import com.alibaba.cloud.ai.mcp.nacos.registry.NacosMcpRegistryProperties;
+import com.alibaba.nacos.api.PropertyKeyConst;
 import com.alibaba.nacos.api.exception.NacosException;
 import com.alibaba.nacos.api.naming.NamingFactory;
 import com.alibaba.nacos.api.naming.NamingService;
@@ -27,7 +29,7 @@ import java.util.*;
  */
 @AutoConfiguration
 @ConditionalOnClass({WebFluxSseClientTransport.class})
-@EnableConfigurationProperties({ NacosMcpSseClientProperties.class, NacosMcpRegistryProperties.class})
+@EnableConfigurationProperties({ NacosMcpSseClientProperties.class, NacosMcpRegistryProperties.class, NacosMcpProperties.class})
 @ConditionalOnProperty(
         prefix = "spring.ai.mcp.client",
         name = {"enabled"},
@@ -41,8 +43,9 @@ public class NacosMcpSseClientAutoConfiguration {
     }
 
     @Bean
-    public NamingService namingService(NacosMcpRegistryProperties nacosMcpRegistryProperties) {
-        Properties nacosProperties = nacosMcpRegistryProperties.getNacosProperties();
+    public NamingService namingService(NacosMcpProperties nacosMcpProperties, NacosMcpRegistryProperties nacosMcpRegistryProperties) {
+        Properties nacosProperties = nacosMcpProperties.getNacosProperties();
+        nacosProperties.put(PropertyKeyConst.NAMESPACE, nacosMcpRegistryProperties.getServiceNamespace());
         try {
             return NamingFactory.createNamingService(nacosProperties);
         }
@@ -52,8 +55,9 @@ public class NacosMcpSseClientAutoConfiguration {
     }
 
     @Bean
-    public NacosConfigService  nacosConfigService(NacosMcpRegistryProperties nacosMcpRegistryProperties) {
-        Properties nacosProperties = nacosMcpRegistryProperties.getNacosProperties();
+    public NacosConfigService  nacosConfigService(NacosMcpProperties nacosMcpProperties, NacosMcpRegistryProperties nacosMcpRegistryProperties) {
+        Properties nacosProperties = nacosMcpProperties.getNacosProperties();
+        nacosProperties.put(PropertyKeyConst.NAMESPACE, nacosMcpRegistryProperties.getServiceNamespace());
         try {
             return new NacosConfigService(nacosProperties);
         }
@@ -67,6 +71,7 @@ public class NacosMcpSseClientAutoConfiguration {
             NacosMcpSseClientProperties nacosMcpSseClientProperties,
             ObjectProvider<WebClient.Builder> webClientBuilderProvider,
             NamingService namingService,
+            NacosMcpRegistryProperties nacosMcpRegistryProperties,
             ObjectProvider<ObjectMapper> objectMapperProvider) {
         Map<String, List<NamedClientMcpTransport>> server2NamedTransport = new HashMap<>();
         WebClient.Builder webClientBuilderTemplate = (WebClient.Builder) webClientBuilderProvider
@@ -76,7 +81,7 @@ public class NacosMcpSseClientAutoConfiguration {
         Map<String, String> connections = nacosMcpSseClientProperties.getConnections();
         connections.forEach((serviceKey, service) -> {
             try {
-                List<Instance> instances = namingService.selectInstances(service + "-mcp-service", "mcp-server",true);
+                List<Instance> instances = namingService.selectInstances(service + "-mcp-service", nacosMcpRegistryProperties.getServiceGroup(),true);
                 List<NamedClientMcpTransport> namedTransports = new ArrayList<>();
                 for (Instance instance : instances) {
                     String url = instance.getMetadata().getOrDefault("scheme", "http") + "://" + instance.getIp() + ":"

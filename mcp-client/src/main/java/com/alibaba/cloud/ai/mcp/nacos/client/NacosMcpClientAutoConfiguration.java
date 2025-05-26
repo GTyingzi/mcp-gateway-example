@@ -18,16 +18,12 @@ package com.alibaba.cloud.ai.mcp.nacos.client;
 
 import com.alibaba.cloud.ai.mcp.nacos.client.transport.LoadbalancedMcpAsyncClient;
 import com.alibaba.cloud.ai.mcp.nacos.client.transport.LoadbalancedMcpSyncClient;
+import com.alibaba.cloud.ai.mcp.nacos.registry.NacosMcpRegistryProperties;
 import com.alibaba.nacos.api.naming.NamingService;
 import com.alibaba.nacos.client.config.NacosConfigService;
-import io.modelcontextprotocol.client.McpAsyncClient;
-import io.modelcontextprotocol.client.McpClient;
-import io.modelcontextprotocol.client.McpSyncClient;
 import io.modelcontextprotocol.spec.McpSchema;
 import org.springframework.ai.mcp.client.autoconfigure.McpClientAutoConfiguration;
 import org.springframework.ai.mcp.client.autoconfigure.NamedClientMcpTransport;
-import org.springframework.ai.mcp.client.autoconfigure.configurer.McpAsyncClientConfigurer;
-import org.springframework.ai.mcp.client.autoconfigure.configurer.McpSyncClientConfigurer;
 import org.springframework.ai.mcp.client.autoconfigure.properties.McpClientCommonProperties;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -47,7 +43,7 @@ import java.util.Map;
  */
 @AutoConfiguration(after = {NacosMcpSseClientAutoConfiguration.class, McpClientAutoConfiguration.class})
 @ConditionalOnClass({McpSchema.class})
-@EnableConfigurationProperties({McpClientCommonProperties.class})
+@EnableConfigurationProperties({McpClientCommonProperties.class, NacosMcpRegistryProperties.class})
 @ConditionalOnProperty(prefix = "spring.ai.mcp.client", name = {"nacos-enabled"}, havingValue = "true",
         matchIfMissing = false)
 public class NacosMcpClientAutoConfiguration {
@@ -65,7 +61,9 @@ public class NacosMcpClientAutoConfiguration {
     public List<LoadbalancedMcpSyncClient> loadbalancedMcpSyncClientList(
             @Qualifier("server2NamedTransport") ObjectProvider<Map<String, List<NamedClientMcpTransport>>> server2NamedTransportProvider,
             ObjectProvider<NamingService> namingServiceProvider,
-            ObjectProvider<NacosConfigService> nacosConfigServiceProvider) {
+            ObjectProvider<NacosConfigService> nacosConfigServiceProvider,
+            NacosMcpRegistryProperties nacosMcpRegistryProperties
+            ) {
         NamingService namingService = namingServiceProvider.getObject();
         NacosConfigService nacosConfigService = nacosConfigServiceProvider.getObject();
 
@@ -78,6 +76,7 @@ public class NacosMcpClientAutoConfiguration {
                     .serviceName(serviceName)
                     .namingService(namingService)
                     .nacosConfigService(nacosConfigService)
+                    .serviceGroup(nacosMcpRegistryProperties.getServiceGroup())
                     .build();
             loadbalancedMcpSyncClient.init();
             loadbalancedMcpSyncClient.subscribe();
@@ -92,7 +91,9 @@ public class NacosMcpClientAutoConfiguration {
     public List<LoadbalancedMcpAsyncClient> loadbalancedMcpAsyncClientList(
             @Qualifier("server2NamedTransport") ObjectProvider<Map<String, List<NamedClientMcpTransport>>> server2NamedTransportProvider,
             ObjectProvider<NamingService> namingServiceProvider,
-            ObjectProvider<NacosConfigService> nacosConfigServiceProvider) {
+            ObjectProvider<NacosConfigService> nacosConfigServiceProvider,
+            NacosMcpRegistryProperties nacosMcpRegistryProperties
+            ) {
         NamingService namingService = namingServiceProvider.getObject();
         NacosConfigService nacosConfigService = nacosConfigServiceProvider.getObject();
 
@@ -105,6 +106,7 @@ public class NacosMcpClientAutoConfiguration {
                     .serviceName(serviceName)
                     .namingService(namingService)
                     .nacosConfigService(nacosConfigService)
+                    .serviceGroup(nacosMcpRegistryProperties.getServiceGroup())
                     .build();
             loadbalancedMcpAsyncClient.initClient();
             loadbalancedMcpAsyncClient.subscribe();

@@ -6,10 +6,7 @@
 package org.springframework.ai.mcp.server.autoconfigure;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.yingzi.nacos.gateway.ServerWebfluxApplication;
-import com.yingzi.nacos.gateway.utils.ApplicationContextHolder;
 import io.modelcontextprotocol.server.transport.WebFluxSseServerTransportProvider;
-import io.modelcontextprotocol.spec.McpClientSession;
 import io.modelcontextprotocol.spec.McpServerTransportProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

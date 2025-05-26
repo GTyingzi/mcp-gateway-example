@@ -12,8 +12,8 @@
     <artifactId>mcp-server</artifactId>
 
     <properties>
-        <spring-ai.version>1.0.0-M8</spring-ai.version>
-        <ai-alibaba.version>1.0.0-M8.1-SNAPSHOT</ai-alibaba.version>
+        <spring-ai.version>1.0.0-RC1</spring-ai.version>
+        <spring-ai-alibaba.version>1.0.0-RC1.1</spring-ai-alibaba.version>
     </properties>
 
     <dependencies>
@@ -26,13 +26,13 @@
         <dependency>
             <groupId>com.alibaba.cloud.ai</groupId>
             <artifactId>spring-ai-alibaba-mcp-nacos</artifactId>
-            <version>${ai-alibaba.version}</version>
+            <version>${spring-ai-alibaba.version}</version>
         </dependency>
 
         <dependency>
-            <groupId>org.springframework.ai</groupId>
-            <artifactId>spring-ai-autoconfigure-mcp-server</artifactId>
-            <version>${spring-ai.version}</version>
+            <groupId>com.alibaba.cloud.ai</groupId>
+            <artifactId>spring-ai-alibaba-autoconfigure-nacos-mcp-server</artifactId>
+            <version>${spring-ai-alibaba.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.ai</groupId>

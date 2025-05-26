@@ -1,6 +1,6 @@
 package org.springframework.ai.tool.definition;
 
-import org.springframework.ai.tool.util.ToolUtils;
+import org.springframework.ai.tool.support.ToolUtils;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 

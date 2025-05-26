@@ -4,7 +4,7 @@ import com.alibaba.nacos.api.exception.NacosException;
 import com.alibaba.nacos.api.naming.NamingService;
 import com.alibaba.nacos.api.naming.pojo.Instance;
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.yingzi.nacos.gateway.utils.ApplicationContextHolder;
+import com.yingzi.nacos.gateway.utils.ApplicationContextUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ai.chat.model.ToolContext;
@@ -12,8 +12,6 @@ import org.springframework.ai.tool.ToolCallback;
 import org.springframework.ai.tool.definition.RestfulToolDefinition;
 import org.springframework.ai.tool.definition.ToolDefinition;
 import org.springframework.ai.util.json.JsonParser;
-import org.springframework.cloud.client.ServiceInstance;
-import org.springframework.cloud.client.loadbalancer.LoadBalancerClient;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -37,7 +35,7 @@ public class RestfulToolCallback implements ToolCallback {
         Assert.notNull(toolDefinition, "toolDefinition cannot be null");
         Assert.isInstanceOf(RestfulToolDefinition.class, toolDefinition, "toolDefinition must be an instance of RestfulToolDefinition");
         this.toolDefinition = (RestfulToolDefinition) toolDefinition;
-        this.webClient = ApplicationContextHolder.getBean(WebClient.class);
+        this.webClient = ApplicationContextUtil.getBean(WebClient.class);
     }
 
     @Override
@@ -54,7 +52,7 @@ public class RestfulToolCallback implements ToolCallback {
         Assert.hasText(toolInput, "toolInput cannot be null or empty");
         logger.debug("Starting execution of tool: {}", this.toolDefinition.name());
         
-        NamingService namingService = ApplicationContextHolder.getBean(NamingService.class);
+        NamingService namingService = ApplicationContextUtil.getBean(NamingService.class);
         
         String path = toolDefinition.methodName2Path().get(toolDefinition.name());
         Map<String, Object> toolArguments = extractToolArguments(toolInput);

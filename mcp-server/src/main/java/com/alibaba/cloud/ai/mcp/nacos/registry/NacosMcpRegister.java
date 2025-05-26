@@ -14,17 +14,18 @@
  * limitations under the License.
  */
 
-package com.alibaba.cloud.ai.mcp.nacos;
+package com.alibaba.cloud.ai.mcp.nacos.registry;
 
-import com.alibaba.cloud.ai.mcp.nacos.common.NacosMcpProperties;
-import com.alibaba.cloud.ai.mcp.nacos.model.McpServerInfo;
-import com.alibaba.cloud.ai.mcp.nacos.model.McpToolsInfo;
-import com.alibaba.cloud.ai.mcp.nacos.model.RemoteServerConfigInfo;
-import com.alibaba.cloud.ai.mcp.nacos.model.ServiceRefInfo;
-import com.alibaba.cloud.ai.mcp.nacos.model.ToolMetaInfo;
-import com.alibaba.cloud.ai.mcp.nacos.model.McpNacosConstant;
-import com.alibaba.cloud.ai.mcp.nacos.utils.JsonUtils;
-import com.alibaba.cloud.ai.mcp.nacos.utils.MD5Utils;
+import com.alibaba.cloud.ai.mcp.nacos.NacosMcpProperties;
+import com.alibaba.cloud.ai.mcp.nacos.registry.model.McpServerInfo;
+import com.alibaba.cloud.ai.mcp.nacos.registry.model.McpToolsInfo;
+import com.alibaba.cloud.ai.mcp.nacos.registry.model.RemoteServerConfigInfo;
+import com.alibaba.cloud.ai.mcp.nacos.registry.model.ServiceRefInfo;
+import com.alibaba.cloud.ai.mcp.nacos.registry.model.ToolMetaInfo;
+import com.alibaba.cloud.ai.mcp.nacos.registry.model.McpNacosConstant;
+import com.alibaba.cloud.ai.mcp.nacos.registry.utils.JsonUtils;
+import com.alibaba.cloud.ai.mcp.nacos.registry.utils.MD5Utils;
+import com.alibaba.nacos.api.PropertyKeyConst;
 import com.alibaba.nacos.api.config.ConfigService;
 import com.alibaba.nacos.api.config.listener.Listener;
 import com.alibaba.nacos.api.exception.NacosException;
@@ -88,18 +89,13 @@ public class NacosMcpRegister implements ApplicationListener<WebServerInitialize
         this.nacosMcpRegistryProperties = nacosMcpRegistryProperties;
 
         try {
-            Class<?> clazz = Class.forName("io.modelcontextprotocol.server.McpAsyncServer$AsyncServerImpl");
-            Field delegateField = McpAsyncServer.class.getDeclaredField("delegate");
-            delegateField.setAccessible(true);
-            Object delegateInstance = delegateField.get(mcpAsyncServer);
-
             this.serverInfo = mcpAsyncServer.getServerInfo();
             this.serverCapabilities = mcpAsyncServer.getServerCapabilities();
 
-            Field toolsField = clazz.getDeclaredField("tools");
+            Field toolsField = McpAsyncServer.class.getDeclaredField("tools");
             toolsField.setAccessible(true);
             this.tools = (CopyOnWriteArrayList<McpServerFeatures.AsyncToolSpecification>) toolsField
-                    .get(delegateInstance);
+                    .get(mcpAsyncServer);
 
             this.toolsMeta = new HashMap<>();
             this.tools.forEach(toolRegistration -> {
@@ -283,11 +279,12 @@ public class NacosMcpRegister implements ApplicationListener<WebServerInitialize
         }
         try {
             int port = event.getWebServer().getPort();
-            NamingService namingService = new NacosNamingService(nacosMcpProperties.getNacosProperties());
+            Properties nacosProperties = nacosMcpProperties.getNacosProperties();
+            nacosProperties.put(PropertyKeyConst.NAMESPACE, nacosMcpRegistryProperties.getServiceNamespace());
+            NamingService namingService = new NacosNamingService(nacosProperties);
             Instance instance = new Instance();
 
             Map<String, String> metadata = new HashMap();
-
             // 配置Mcp Server信息的MD5
             String content = configService.getConfig(this.serverInfo.name() + McpNacosConstant.SERVER_CONFIG_SUFFIX,
                     McpNacosConstant.SERVER_GROUP, TIME_OUT_MS);
@@ -314,6 +311,7 @@ public class NacosMcpRegister implements ApplicationListener<WebServerInitialize
             instance.setIp(nacosMcpProperties.getIp());
             instance.setPort(port);
             instance.setEphemeral(nacosMcpRegistryProperties.isServiceEphemeral());
+            instance.setMetadata(metadata);
             namingService.registerInstance(this.serverInfo.name() + McpNacosConstant.SERVER_NAME_SUFFIX,
                     nacosMcpRegistryProperties.getServiceGroup(), instance);
             log.info("Register mcp server service to nacos successfully");

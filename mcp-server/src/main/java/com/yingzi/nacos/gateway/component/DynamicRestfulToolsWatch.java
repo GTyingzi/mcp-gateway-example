@@ -13,15 +13,13 @@ import com.alibaba.nacos.common.utils.JacksonUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yingzi.nacos.gateway.model.OpenApiDoc;
-import com.yingzi.nacos.gateway.utils.ApplicationContextHolder;
+import com.yingzi.nacos.gateway.utils.ApplicationContextUtil;
 import com.yingzi.nacos.gateway.utils.JSONSchemaUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ai.tool.definition.RestfulToolDefinition;
 import org.springframework.ai.tool.definition.ToolDefinition;
 import org.springframework.ai.tool.method.DynamicMcpToolsProvider;
-import org.springframework.cloud.client.ServiceInstance;
-import org.springframework.cloud.client.loadbalancer.LoadBalancerClient;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import java.util.*;
@@ -41,7 +39,7 @@ public class DynamicRestfulToolsWatch extends AbstractConfigChangeListener imple
     public DynamicRestfulToolsWatch(NamingService namingService, DynamicMcpToolsProvider dynamicMcpToolsProvider) {
         this.namingService = namingService;
         this.dynamicMcpToolsProvider = dynamicMcpToolsProvider;
-        InitRestfulToolComponent initRestfulToolComponent = ApplicationContextHolder.getBean(InitRestfulToolComponent.class);
+        InitRestfulToolComponent initRestfulToolComponent = ApplicationContextUtil.getBean(InitRestfulToolComponent.class);
         this.service2tool = initRestfulToolComponent.getService2tool();
         initLinster();
     }
@@ -57,7 +55,7 @@ public class DynamicRestfulToolsWatch extends AbstractConfigChangeListener imple
     }
 
     private void parse(String serviceName) {
-        WebClient globalWebClient = ApplicationContextHolder.getBean(WebClient.class);
+        WebClient globalWebClient = ApplicationContextUtil.getBean(WebClient.class);
         ObjectMapper objectMapper = new ObjectMapper();
         try {
             List<Instance> instances = namingService.selectInstances(serviceName, true);
